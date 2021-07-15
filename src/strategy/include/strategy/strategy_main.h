@@ -9,7 +9,7 @@
 #include "tku_libs/WalkContinuouse.h"
 #include "strategy/basketballinfo.h"
 #include "strategy/loadparameter.h"
-
+#include "strategy/pso.h"
 using namespace std;
 
 class KidsizeStrategy
@@ -58,7 +58,9 @@ public:
 	//LayUp
 	void UPbasket();
 	void SlamDunk();
-
+	double pso_sphere(double *vec, int dim, void *params);
+	double pso_rosenbrock(double *vec, int dim, void *params);
+	double pso_griewank(double *vec, int dim, void *params);
 	typedef enum{
 		//BB
 		//Catch Ball
@@ -69,10 +71,9 @@ public:
 		BB_WaistCatch2          = 1110,
 		BB_WaistUp2			    = 1114,
 		BB_WaistUpFeedBack      = 1112,
-		BB_WaistUpFeedBack2     = 2112,
 		//Shooting
 		BB_RaiseHand			= 1115,
-		BB_ShootingBall		    = 1125,
+		BB_ShootingBall		    = 1116,
 		BB_KeepBall			    = 1117,
 		//LayUp
 		BB_UpHand               = 1140,

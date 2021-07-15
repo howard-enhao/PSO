@@ -80,14 +80,13 @@ void basketballinfo::Init()
 
     //TracebasketHead
     BasketInfo->LayUpFlag = false;
-    BasketInfo->FivePointFlag = false;
 
     //Tracebasketbody
     BasketInfo->RoateFlag = true;
     BasketInfo->WaistFlag = false;
     BasketInfo->ComputeFlag = false;
     BasketInfo->ReAimFlag = false;
-    BasketInfo->RaiseFlag = true;
+    BasketInfo->RaiseFlag = false;
     BasketInfo->ThrowBallFlag = false;
 
     //UPbasket

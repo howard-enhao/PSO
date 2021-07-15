@@ -24,6 +24,15 @@ set(ROSCOMMUNICATION_LIBRARIES ${CATKIN_DEVEL_PREFIX}/lib/libroscommunication.so
 # find_package(Boost REQUIRED COMPONENTS system)
 
 ## Generate messages in the 'msg' folder
+add_message_files(DIRECTORY msg
+	FILES
+
+	particle.msg
+	obstacle.msg
+	step_space.msg
+)
+
+generate_messages(DEPENDENCIES std_msgs)
 #add_message_files(DIRECTORY msg
 #	FILES
 #)
@@ -52,7 +61,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(BBthrow Kidsize_HuroCup/strategy_main.cpp Kidsize_HuroCup/basketballinfo.cpp  Kidsize_HuroCup/loadparameter.cpp)
+add_executable(BBthrow Kidsize_HuroCup/strategy_main.cpp Kidsize_HuroCup/basketballinfo.cpp  Kidsize_HuroCup/loadparameter.cpp Kidsize_HuroCup/pso.cpp)
 add_dependencies(BBthrow ${catkin_EXPORTED_TARGETS})
 target_link_libraries(BBthrow ${catkin_LIBRARIES} ${TKU_LIBRARIES} ${ROSCOMMUNICATION_LIBRARIES})
 

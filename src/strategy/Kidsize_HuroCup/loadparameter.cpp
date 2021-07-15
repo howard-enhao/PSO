@@ -171,7 +171,6 @@ void LoadParameter::LoadParameters()
         BasketInfo->SizeOfDist[1] = this->readvalue(fin,"Size60", 0);
         BasketInfo->SizeOfDist[2] = this->readvalue(fin,"Size70", 0);
         BasketInfo->SizeOfDist[3] = this->readvalue(fin,"Size80", 0);
-        BasketInfo->SizeOfDist[4] = this->readvalue(fin,"Size90", 0);
         fin.getline(temp, sizeof(temp));
         BasketInfo->BallVerticalError = this->readvalue(fin,"BallVerticalError", 0);
         BasketInfo->BallHorizontalError = this->readvalue(fin,"BallHorizontalError", 0);
@@ -183,7 +182,6 @@ void LoadParameter::LoadParameters()
         BasketInfo->backLine = this->readvalue(fin,"backLine", 0);
         fin.getline(temp, sizeof(temp));
         BasketInfo->WaistError = this->readvalue(fin,"WaistError", 0);
-        BasketInfo->SpeedError = this->readvalue(fin,"SpeedError", 0);
         fin.getline(temp, sizeof(temp));
         BasketInfo->UpBasketStopLine = this->readvalue(fin,"UpBasketStopLine", 0);
         BasketInfo->ContinuousSlowLine2 = this->readvalue(fin,"ContinuousSlowLine2", 0);
@@ -450,8 +448,8 @@ void LoadParameter::TestParameters()
     ROS_INFO("VerticalMinAngle = %d",BasketInfo->VerticalMinAngle);
     ROS_INFO("HorizontalMaxAngle = %d",BasketInfo->HorizontalMaxAngle);
     ROS_INFO("HorizontalMinAngle = %d",BasketInfo->HorizontalMinAngle);
-    ROS_INFO("BasketHorizontalMaxAngle = %d",BasketInfo->BasketHorizontalMaxAngle);
     ROS_INFO("BasketHorizontalMinAngle = %d",BasketInfo->BasketHorizontalMinAngle);
+    ROS_INFO("BasketHorizontalMaxAngle = %d",BasketInfo->BasketHorizontalMaxAngle);
     ROS_INFO("BasketHorizontalBaseLine = %d",BasketInfo->BasketHorizontalBaseLine);
     ROS_INFO("BasketVerticalBaseLine = %d",BasketInfo->BasketVerticalBaseLine);
     ROS_INFO("BasketVerticalBaseLine90 = %d",BasketInfo->BasketVerticalBaseLine90);
@@ -460,7 +458,6 @@ void LoadParameter::TestParameters()
     ROS_INFO("BasketVerticalBaseLine60 = %d",BasketInfo->BasketVerticalBaseLine60);
     ROS_INFO("BasketVerticalBaseLine50 = %d",BasketInfo->BasketVerticalBaseLine50);
     ROS_INFO("WaistError = %d",BasketInfo->WaistError);
-    ROS_INFO("SpeedError = %d",BasketInfo->SpeedError);
     ROS_INFO("BallVerticalError = %d",BasketInfo->BallVerticalError);
     ROS_INFO("BallHorizontalError = %d",BasketInfo->BallHorizontalError);
     ROS_INFO("ContinuousSlowLine = %d",BasketInfo->ContinuousSlowLine);
