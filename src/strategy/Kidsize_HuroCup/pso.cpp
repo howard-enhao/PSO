@@ -14,6 +14,7 @@
 #include <vector>
 #include "strategy/pso.h"
 #include "strategy/particle.h"
+#include "strategy/solution.h"
 
 using namespace std;
 // generates a double between (0, 1)
@@ -208,7 +209,7 @@ void inform_random(int *comm, double **pos_nb,
 pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate) {
     pso_settings_t *settings = (pso_settings_t *)malloc(sizeof(pso_settings_t));
     if (settings == NULL) { return NULL; }
-
+    int foot_area[4] = {-30,30,-40,40};
     // set some default values
     settings->dim = dim;  //dimensionality(維度)
     settings->goal = 1e-5;
@@ -221,19 +222,19 @@ pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coord
     if (settings->range_hi == NULL) { free(settings); free(settings->range_lo); return NULL; }
 
     for (int i=0; i<settings->dim; i++) {
-        settings->range_lo[i] = range_limit[i*2];
-        settings->range_hi[i] = range_limit[i*2+1];
+        settings->range_lo[i] = range_limit[i*2] - foot_area[i*2];
+        settings->range_hi[i] = range_limit[i*2+1] - foot_area[i*2+1];
         ROS_INFO("range_lo = %f , range_hi = %f", settings->range_lo[i], settings->range_hi[i]);
     }
     sleep(2);
     // settings->size = pso_calc_swarm_size(settings->dim);
     settings->size = 50;
     settings->print_every = 10;
-    settings->steps = 100;
+    settings->steps = 50;//70;
     settings->c1 = 1.496;  //2
     settings->c2 = 1.496;  //2
     settings->w_max = 0.9;
-    settings->w_min = 0.5;
+    settings->w_min = 0.4;//0.5;
     // settings->w_max = PSO_INERTIA;
     // settings->w_min = 0.3;
 
@@ -268,6 +269,32 @@ void pso_matrix_free(double **m, int size) {
     free(m);
 }
 
+void position_limit(double *pos, double *vel, pso_settings_t *settings) {
+    // clamp position within bounds?
+    // if (settings->clamp_pos) {
+    //     if (pos < settings->range_lo-foot_area[d*2]) {
+    //         pos[i][d] = settings->range_lo[d]-foot_area[d*2];
+    //         vel[i][d] = 0;
+    //     } else if (pos[i][d] > settings->range_hi[d]-foot_area[d*2+1]) {
+    //         pos[i][d] = settings->range_hi[d]-foot_area[d*2+1];
+    //         vel[i][d] = 0;
+    //     }
+    // } else {
+    //     // enforce periodic boundary conditions
+    //     if (pos[i][d] < settings->range_lo[d]) {
+
+    //         pos[i][d] = settings->range_hi[d] - fmod(settings->range_lo[d] - pos[i][d],
+    //                                                              settings->range_hi[d] - settings->range_lo[d]);
+    //         vel[i][d] = 0;
+
+    //     } else if (pos[i][d] > settings->range_hi[d]) {
+
+    //         pos[i][d] = settings->range_lo[d] + fmod(pos[i][d] - settings->range_hi[d],
+    //                                                              settings->range_hi[d] - settings->range_lo[d]);
+    //         vel[i][d] = 0;
+    //     }
+    // }
+}
 
 //==============================================================
 //                     PSO ALGORITHM
@@ -278,8 +305,9 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     struct timeval tstart, tend;
     gettimeofday(&tstart, NULL);
     ros::Publisher pub_accel = nh.advertise< strategy::particle >( "accel", 1000 );
+    ros::Publisher solution_pub = nh.advertise< strategy::solution >( "solution_topic", 1000 );
     strategy::particle msg_accel;
-    
+    strategy::solution solution_msg;
     // Particles
     double **pos = pso_matrix_new(settings->size, settings->dim); // position matrix
     double **vel = pso_matrix_new(settings->size, settings->dim); // velocity matrix
@@ -307,7 +335,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     int ee;
     double Periodtime;
 
-    int foot_area[4] = {-30,30,-40,40};
+    // int foot_area[4] = {-30,30,-40,40};
+    int foot_area[4] = {0,0,0,0};
     // initialize random seed
     srand(time(NULL));
 
@@ -352,15 +381,41 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         // for each dimension
         for (d=0; d<settings->dim; d++) {
             // generate two numbers within the specified range
-            a = settings->range_lo[d] + (settings->range_hi[d] - settings->range_lo[d]) * RNG_UNIFORM();
-            b = settings->range_lo[d] + (settings->range_hi[d] - settings->range_lo[d]) * RNG_UNIFORM();
+            a = settings->range_lo[d]-foot_area[d*2] + (settings->range_hi[d] - settings->range_lo[d]) * RNG_UNIFORM();
+            b = settings->range_lo[d]-foot_area[d*2] + (settings->range_hi[d] - settings->range_lo[d]) * RNG_UNIFORM();
             // initialize position
             pos[i][d] = a;
             // best position is the same
             pos_b[i][d] = a;
             // initialize velocity
             vel[i][d] = (a-b) / 2.;
+            if (settings->clamp_pos) {
+                    if (pos[i][d] < settings->range_lo[d]-foot_area[d*2]) {
+                        pos[i][d] = settings->range_lo[d]-foot_area[d*2];
+                        vel[i][d] = 0;
+                    } else if (pos[i][d] > settings->range_hi[d]-foot_area[d*2+1]) {
+                        pos[i][d] = settings->range_hi[d]-foot_area[d*2+1];
+                        vel[i][d] = 0;
+                    }
+                } else {
+                    // enforce periodic boundary conditions
+                    if (pos[i][d] < settings->range_lo[d]) {
+
+                        pos[i][d] = settings->range_hi[d] - fmod(settings->range_lo[d] - pos[i][d],
+                                                                 settings->range_hi[d] - settings->range_lo[d]);
+                        vel[i][d] = 0;
+
+                    } else if (pos[i][d] > settings->range_hi[d]) {
+
+                        pos[i][d] = settings->range_lo[d] + fmod(pos[i][d] - settings->range_hi[d],
+                                                                 settings->range_hi[d] - settings->range_lo[d]);
+                        vel[i][d] = 0;
+                    }
+                }
+            
         }
+        msg_accel.x.push_back(pos[i][0]);
+        msg_accel.y.push_back(pos[i][1]);
         // update particle fitness
         ROS_INFO("pos[%d][0] = %f, pos[%d][1] = %f", i, pos[i][0], i, pos[i][1]);
         fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
@@ -376,6 +431,15 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         }
         ROS_INFO("no.%d error = %f", i, solution->error);
     }
+    msg_accel.cnt=settings->size;
+    pub_accel.publish( msg_accel );
+    msg_accel.x.clear();
+    msg_accel.y.clear();
+    solution_msg.x = solution->gbest[0];
+    solution_msg.y = solution->gbest[1];
+    solution_pub.publish(solution_msg);
+    for(int i = 0;i<100000000; i++);
+    
     // RUN ALGORITHM
     for (step=0; step<settings->steps; step++) {
         // update current step
@@ -385,7 +449,6 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         if (calc_inertia_fun != NULL) {
             w = calc_inertia_fun(step, settings);  //更新慣性權重
         }
-        ROS_INFO("bbberror = %f", solution->error);
         ROS_INFO("rrr");
         // check optimization goal
         if (solution->error <= settings->goal) {
@@ -401,13 +464,11 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                 // sleep(2);
             break;
         }
-        // ROS_INFO("aaaerror = %f", solution->error);
         // update pos_nb matrix (find best of neighborhood for all particles)
         inform_fun(comm, (double **)pos_nb, (double **)pos_b,
                    fit_b, solution->gbest, improved, settings);
         // the value of improved was just used; reset it
         improved = 0;
-        // ROS_INFO("rrrerror = %f", solution->error);
         
         // update all particles
         for (i=0; i<settings->size; i++) {
@@ -455,7 +516,6 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             
             // update particle fitness
             fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
-            // ROS_INFO("xxerror = %f", solution->error);
             ROS_INFO("i = %d, fit = %f, posx = %f, posy = %f", i, fit[i], msg_accel.x.back(), msg_accel.y.back());
             ROS_INFO("w = %f", w);
             // update personal best position?
@@ -465,7 +525,6 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                 memmove((void *)pos_b[i], (void *)pos[i],
                         sizeof(double) * settings->dim);
                 ROS_INFO("best fit = %f, pos = %f , %f", fit_b[i],  pos_b[i][0], pos_b[i][1]);
-                // ROS_INFO("wwwerror = %f", solution->error);
                 // update gbest
                 if (fit_b[i] < solution->error) {
                     ROS_INFO("update!!!!!!!!!!!!!!");
@@ -481,51 +540,28 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                     memmove((void *)solution->gbest, (void *)pos[i],
                             sizeof(double) * settings->dim);
                     ROS_INFO("---------------------------------");
-                    ROS_INFO("gbest = %f, %f", solution->gbest);
+                    ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
                     ROS_INFO("error = %f", solution->error);
                     ROS_INFO("---------------------------------");
-                    for(int i = 0;i<1000000000; i++);
+                    // for(int i = 0;i<500000000; i++);
                 }
             }
             ROS_INFO("goal = %f", settings->goal);
-            // ROS_INFO("fit = %f", fit[i]);
-            // ROS_INFO("aaaerror = %f", solution->error);
-            // ROS_INFO("q = %f", solution->gbest);
-            // ROS_INFO("error = %f", solution->error);
-            // update gbest??
-            // if (fit[i] < solution->error) {
-            //     ROS_INFO("update!!!!!!!!!!!!!!");
-            //     improved = 1;
-            //     // update best fitness
-            //     solution->error = fit[i];
-            //     qq = pos[i][0];
-            //     ww = pos[i][1];
-            //     ee = i;
-
-            //     // for(int i = 0;i<200000000; i++);
-            //     // copy particle pos to gbest vector
-            //     memmove((void *)solution->gbest, (void *)pos[i],
-            //             sizeof(double) * settings->dim);
-            //     ROS_INFO("---------------------------------");
-            //     ROS_INFO("gbest = %f, error = %f", solution->gbest, solution->error);
-            //     ROS_INFO("---------------------------------");
-            // }
-            // ROS_INFO("gbest = %f, error = %f", solution->gbest, solution->error);
-            ROS_INFO("gbest = %f, %f", solution->gbest);
+            ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
             ROS_INFO("error = %f", solution->error);
+
+        for(int i = 0;i<1000000; i++);
         }
-            ROS_INFO("step = %d", step);
-            msg_accel.cnt=settings->size;
-            pub_accel.publish( msg_accel );
-            msg_accel.x.clear();
-            msg_accel.y.clear();
-            // for(int i=0; i<settings->size; i++)
-            // {
-            //     msg_accel.y[i] = 0;
-            // }
-            // ROS_INFO("msg_accel.cnt = %d", msg_accel.cnt);
-            // ros::spinOnce();
-            for(int i = 0;i<50000000; i++);
+        ROS_INFO("step = %d", step);
+        msg_accel.cnt=settings->size;
+        pub_accel.publish( msg_accel );
+        msg_accel.x.clear();
+        msg_accel.y.clear();
+
+                    solution_msg.x = solution->gbest[0];
+                    solution_msg.y = solution->gbest[1];
+                    solution_pub.publish(solution_msg);
+        for(int i = 0;i<10000000; i++);
 
         // if (settings->print_every && (step % settings->print_every == 0))
         //     printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);
@@ -533,10 +569,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     }
     // gettimeofday(&tend, NULL);
     //             Periodtime  = (1000000*(tend.tv_sec - tstart.tv_sec) + (tend.tv_usec - tstart.tv_usec))/1000;//算週期
-                printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
-                ROS_INFO("ee = %d, qq = %f, ww = %f", ee, qq, ww);
-                ROS_INFO("pos %f , %f", pos[ee][0], pos[ee][1]);
-                ROS_INFO("timeuse = %f", Periodtime);
+    printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
+    ROS_INFO("ee = %d, qq = %f, ww = %f", ee, qq, ww);
+    ROS_INFO("pos %f , %f", pos[ee][0], pos[ee][1]);
+    ROS_INFO("timeuse = %f", Periodtime);
                 // break;
     // free resources
     pso_matrix_free(pos, settings->size);

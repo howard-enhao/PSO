@@ -30,6 +30,7 @@ add_message_files(DIRECTORY msg
 	particle.msg
 	obstacle.msg
 	step_space.msg
+	solution.msg
 )
 
 generate_messages(DEPENDENCIES std_msgs)

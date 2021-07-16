@@ -71,6 +71,7 @@ void pso_settings_free(pso_settings_t *settings);
 // return the swarm size based on dimensionality
 int pso_calc_swarm_size(int dim);
 
+void position_limit(double *pos, double *vel, pso_settings_t *settings);
 
 // minimize the provided obj_fun using PSO with the specified settings
 // and store the result in *solution
