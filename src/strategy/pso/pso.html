@@ -55,6 +55,33 @@
 				overflow: visible;
 				background-size: cover;
 			}
+			#container {
+			background-color: #333;
+			border: 2px black solid;
+			width: 800px;
+			height: 800px;
+			margin: 20px auto;
+			overflow: visible;
+			color: white;
+		}
+
+		#div_orign_image {
+			width: 320px;
+			height: 240px;
+			border: 1px #FFF solid;
+			margin: 25px 32px 24px 32px;
+			float: left;
+			display: inline;
+		}
+
+		#div_color_image {
+			width: 320px;
+			height: 240px;
+			border: 1px #FFF solid;
+			margin: 25px 32px 24px 32px;
+			float: right;
+			display: inline;
+		}
 
 		</style>
 	<script type="text/javascript" src="./js/roslib/eventemitter2.min.js"></script>
@@ -69,6 +96,8 @@
 			connectFlag = true;
 			createTopics();
 			document.getElementById('connected').style.display = 'inline';
+			document.getElementById("orign_image").style.display = 'inline';
+			document.getElementById("color_image").style.display = 'inline';
 		});
 		ros.on('error', function (error) {
 			console.log('Error connecting to websocket server: ', error);
@@ -77,6 +106,8 @@
 		ros.on('close', function () {
 			console.log('Connection to websocket server closed.');
 			document.getElementById('connected').style.display = 'none';
+			document.getElementById("color_image").style.display = 'none';
+			document.getElementById("orign_image").style.display = 'none';
 		});
 
 		var SendBodyAuto_Topic = new ROSLIB.Topic({
@@ -265,6 +296,10 @@
 		var particlecnt = 0;
 		var stepspaceArray = [];
 		var solutionArray = [];
+		var field_x = 650;
+		var field_y = 490;
+		var field_x_2 = field_x/2;
+		var field_y_2 = field_y/2;
 
 		function createTopics() 
 		{
@@ -396,7 +431,7 @@
 				{
 					var context = canvas.getContext("2d");
 
-					context.clearRect(0, 0, 610, 610);
+					context.clearRect(0, 0, field_x, field_y);
 					context.strokeStyle = '#ffffff';
 					context.lineWidth = 1;
 					// context.strokeRect(10, 20, 30, 40);
@@ -467,7 +502,7 @@
 					// context.stroke();
 					/*centor*/
 					context.beginPath();
-					context.arc(305, 305, 5, 0, 2 * Math.PI);
+					context.arc(field_x_2, field_y_2, 5, 0, 2 * Math.PI);
 					context.stroke();
 
 					// context.beginPath();
@@ -503,16 +538,16 @@
 					Obstaclefreearea_Topic.publish(Obstaclefree_msg);
 					for(var i = 0; i<3; i++)
 					{
-						context.strokeRect(Obstaclefree_msg.x[i]*3+305-Obstaclefree_msg.width[i]*3/2, Obstaclefree_msg.y[i]*3+305-Obstaclefree_msg.height[i]*3/2, Obstaclefree_msg.width[i]*3, Obstaclefree_msg.height[i]*3); //(x,y,width,height)
+						context.strokeRect(Obstaclefree_msg.x[i]*3+field_x_2-Obstaclefree_msg.width[i]*3/2, Obstaclefree_msg.y[i]*3+field_y_2-Obstaclefree_msg.height[i]*3/2, Obstaclefree_msg.width[i]*3, Obstaclefree_msg.height[i]*3); //(x,y,width,height)
 						context.beginPath();
-						context.arc(Obstaclefree_msg.x[i]*3+305, Obstaclefree_msg.y[i]*3+305, 1, 0, 2 * Math.PI);
+						context.arc(Obstaclefree_msg.x[i]*3+field_x_2, Obstaclefree_msg.y[i]*3+field_y_2, 1, 0, 2 * Math.PI);
 						context.stroke();
 						// context.arc(30, 20, 10, 0, 2 * Math.PI);
 
 					}
 					
 					context.lineWidth = 0.1;
-					context.strokeRect(5,5,600,600); //(x,y,width,height)
+					context.strokeRect(5,5,field_x-10,field_y-10); //(x,y,width,height)
 					
 					// context.strokeRect(Obstaclefree_msg.x*3, Obstaclefree_msg.y*3, Obstaclefree_msg.width*3, Obstaclefree_msg.height*3); //(x,y,width,height)
 					// context.strokeRect(Obstaclefree_msg.data[0]*3, Obstaclefree_msg.data[1]*3, Obstaclefree_msg.data[2]*3, Obstaclefree_msg.data[3]*3); //(x,y,width,height)
@@ -533,9 +568,9 @@
 				}
 				context.strokeStyle = '#FF0000';
 				context.lineWidth = 1;
-				context.strokeRect(solutionArray[0]+305-60*3/2, solutionArray[1]+305-80*3/2, 60*3, 80*3); //(x,y,width,height)
+				context.strokeRect(solutionArray[0]+field_x_2-60*3/2, solutionArray[1]+field_y_2-80*3/2, 60*3, 80*3); //(x,y,width,height)
 				context.beginPath();
-				context.arc(solutionArray[0]+305, solutionArray[1]+305, 2, 0, 2 * Math.PI);
+				context.arc(solutionArray[0]+field_x_2, solutionArray[1]+field_y_2, 2, 0, 2 * Math.PI);
 				context.stroke();
 				console.log(solutionArray);
 			}
@@ -548,9 +583,9 @@
 				}
 				context.strokeStyle = '#F9F900';
 				context.lineWidth = 1;
-				context.strokeRect((stepspaceArray[0]+stepspaceArray[1])/2+305-(stepspaceArray[1]-stepspaceArray[0])/2, (stepspaceArray[2]+stepspaceArray[3])/2+305-(stepspaceArray[3]-stepspaceArray[2])/2, stepspaceArray[1]-stepspaceArray[0], stepspaceArray[3]-stepspaceArray[2]); //(x,y,width,height)
+				context.strokeRect((stepspaceArray[0]+stepspaceArray[1])/2+field_x_2-(stepspaceArray[1]-stepspaceArray[0])/2, (stepspaceArray[2]+stepspaceArray[3])/2+field_y_2-(stepspaceArray[3]-stepspaceArray[2])/2, stepspaceArray[1]-stepspaceArray[0], stepspaceArray[3]-stepspaceArray[2]); //(x,y,width,height)
 				context.beginPath();
-				context.arc((stepspaceArray[0]+stepspaceArray[1])/2+305, (stepspaceArray[2]+stepspaceArray[3])/2+305, 2, 0, 2 * Math.PI);
+				context.arc((stepspaceArray[0]+stepspaceArray[1])/2+field_x_2, (stepspaceArray[2]+stepspaceArray[3])/2+field_y_2, 2, 0, 2 * Math.PI);
 				context.stroke();
 				// context.strokeRect(5,5,600,600); //(x,y,width,height)
 				// console.log(stepspaceArray);
@@ -581,13 +616,13 @@
 						context.lineWidth = 1;
 						context.fillStyle = '#d1e0d1';
 						context.strokeStyle = '#d1e0d1';
-						context.arc(parseInt(particleArray[i][0])+305, parseInt(particleArray[i][1])+305, 2, 0, Math.PI * 2);
+						context.arc(parseInt(particleArray[i][0])+field_x_2, parseInt(particleArray[i][1])+field_y_2, 2, 0, Math.PI * 2);
 						context.stroke();
 						// context.beginPath();
 						// context.strokeStyle = 'blue';
 						context.lineWidth = 1;
 						context.strokeStyle = 'blue';
-						context.strokeRect(parseInt(particleArray[i][0])+305-90, parseInt(particleArray[i][1])+305-120, 60*3, 80*3); //(x,y,width,height)
+						context.strokeRect(parseInt(particleArray[i][0])+field_x_2-90, parseInt(particleArray[i][1])+field_y_2-120, 60*3, 80*3); //(x,y,width,height)
 
 						// context.lineWidth = 1;
 						// console.log(i);
@@ -621,6 +656,8 @@
 			myAddress = document.getElementById("addressSelect").value;
 			console.log("Connecting address is", myAddress)
 			ros.connect("ws://" + myAddress + ":9090");
+			document.getElementById("orign_image").src = "http://" + myAddress + ":8080/stream?topic=/orign_image";
+			document.getElementById("color_image").src = "http://" + myAddress + ":8080/stream?topic=/colormodel_image";
 		}
 
 		function LeftTurnFun() {
@@ -1955,7 +1992,6 @@
 
 	<form id="childform" name="childform">
 		<div id="head" align="center">
-			<h1 align="center" id="header" style="color: white;">Walking Interface</h1>
 			<table>
 				<tr>
 					<td>
@@ -1970,11 +2006,77 @@
 				</tr>
 			</table>
 		</div>
-		<div id="container">
-			<section id="filedarea" align="center" style="float: center; margin-left: 20px">
-				<canvas id="SoccerFiled" width="610" height="610"></canvas>
-			</section>
-        </div>
+		<div id="container" align="center">
+			<div id="div_orign_image">
+				<img id="orign_image" style="-webkit-user-select: none; display:inline;" src="http://172.17.121.10:8080/stream?topic=/orign_image">
+			</div>
+
+			<div id="div_color_image">
+				<img id="color_image" style="-webkit-user-select: none; display:inline;" src="http://172.17.121.10:8080/stream?topic=/colormodel_image">
+
+			</div>
+			<!-- <div id="select">
+				<div>
+				</div>
+				<div id="Camera">
+					<div style="float:left; margin-left:8px;">
+						<input type="checkbox" name="AutoWhitBlance" id="AutoWhitBlance" onclick="changeAutoWhitBlance()">Auto White_blance
+					</div>
+					<div style="float:right; margin-right:12px;">
+						<input type="checkbox" name="AutoExposure" id="AutoExposure" onclick="changeAutoExposure()">Auto Exposure
+					</div>
+					<table width="320">
+						<tr>
+							<td colspan="3">
+								<p class="text">Camera Brightness:</p>
+							</td>
+						</tr>
+						<tr>
+							<td width="25"></td>
+							<td><input class="Range" id="CamBrightness" name="CamBrightness" type="range" min="0" max="255" value="50"
+								 oninput="showCamBrightness(this.value)" /></td>
+							<td><input type="text" class="ValueText" id="CamBrightnessValue" size="12" value="50" onchange="rangeCamBrightnessValue(this.value)" /></td>
+						</tr>
+						<tr>
+							<td colspan="3">
+								<p class="text">Camera Contras:</p>
+							</td>
+						</tr>
+						<tr>
+							<td width="25"></td>
+							<td><input class="Range" id="CamContrast" name="CamContrast" type="range" min="0" max="10" value="5" oninput="showCamContrast(this.value)" /></td>
+							<td><input type="text" class="ValueText" id="CamContrastValue" size="12" value="5" onchange="rangeCamContrastValue(this.value)" /></td>
+						</tr>
+						<tr>
+							<td colspan="3">
+								<p class="text">Camera Saturation:</p>
+							</td>
+						</tr>
+						<tr>
+							<td width="25"></td>
+							<td><input class="Range" id="CamSaturation" name="CamSaturation" type="range" min="0" max="255" value="50"
+								 oninput="showCamSaturation(this.value)" /></td>
+							<td><input type="text" class="ValueText" id="CamSaturationValue" size="12" value="50" onchange="rangeCamSaturationValue(this.value)" /></td>
+						</tr>
+						<tr>
+							<td colspan="3">
+								<p class="text">Camera WhiteBalance:</p>
+							</td>
+						</tr>
+						<tr>
+							<td width="25"></td>
+							<td><input class="Range" id="CamWhiteBalance" name="CamWhiteBalance" type="range" min="0" max="8000" value="4000"
+								 oninput="showCamWhiteBalance(this.value)" /></td>
+							<td><input type="text" class="ValueText" id="CamWhiteBalanceValue" size="12" value="4000" onchange="rangeCamWhiteBalanceValue(this.value)" /></td>
+						</tr>
+					</table>
+				</div>
+			</div> -->
+			<div id="filedarea">
+				<canvas id="SoccerFiled" width="650" height="490"></canvas>
+			</div>
+		</div>
+		
 		
 	</form>
 </body>
