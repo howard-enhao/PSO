@@ -62,9 +62,17 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(BBthrow Kidsize_HuroCup/strategy_main.cpp Kidsize_HuroCup/basketballinfo.cpp  Kidsize_HuroCup/loadparameter.cpp Kidsize_HuroCup/pso.cpp)
+add_executable(BBthrow 
+	Kidsize_HuroCup/strategy_main.cpp 
+	Kidsize_HuroCup/basketballinfo.cpp  
+	Kidsize_HuroCup/loadparameter.cpp 
+	Kidsize_HuroCup/pso.cpp)
 add_dependencies(BBthrow ${catkin_EXPORTED_TARGETS})
-target_link_libraries(BBthrow ${catkin_LIBRARIES} ${TKU_LIBRARIES} ${ROSCOMMUNICATION_LIBRARIES})
+target_link_libraries(BBthrow ${catkin_LIBRARIES} ${TKU_LIBRARIES} ${ROSCOMMUNICATION_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(edge Kidsize_HuroCup/edge_detection.cpp)
+add_dependencies(edge ${catkin_EXPORTED_TARGETS})
+target_link_libraries(edge ${catkin_LIBRARIES} ${TKU_LIBRARIES} ${ROSCOMMUNICATION_LIBRARIES} ${OpenCV_LIBRARIES})
 
 
 

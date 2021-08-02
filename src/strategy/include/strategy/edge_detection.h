@@ -1,0 +1,49 @@
+#ifndef IMAGEMAIN_H
+#define IMAGEMAIN_H
+
+#include <ros/ros.h>
+#include <ros/package.h>
+#include <vector>
+#include <stdio.h>
+#include <cmath>
+#include <algorithm>
+#include <std_msgs/String.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <cv_bridge/cv_bridge.h>
+#include "tku_libs/strategy_info.h"
+#include "tku_libs/TKU_tool.h"
+#include "tku_libs/RosCommunication.h"
+#include "tku_libs/WalkContinuouse.h"
+#include "strategy/basketballinfo.h"
+#include "strategy/loadparameter.h"
+#include "sensor_msgs/Image.h"
+#include <sensor_msgs/image_encodings.h>
+#include "strategy/pso.h"
+using namespace std;
+using namespace cv;
+
+class Edge_detection 
+{
+    public:
+        Edge_detection(ros::NodeHandle &nh)
+        {
+            strategy_info = StrategyInfoInstance::getInstance();
+            Imagesource_subscriber = nh.subscribe("/usb_cam/image_raw", 10, &Edge_detection::Catch_image, this);
+        };
+        ~Edge_detection(){};
+
+        ros::Subscriber Imagesource_subscriber;
+        StrategyInfoInstance *strategy_info;
+        void strategymain();
+        void Catch_image(const sensor_msgs::ImageConstPtr& msg);
+        Mat edge;
+        Mat orign_img;
+        bool checkRealImage = false;
+        bool checkImageSource = false;
+    // private:
+};
+
+#endif // IMAGEMAIN_H
