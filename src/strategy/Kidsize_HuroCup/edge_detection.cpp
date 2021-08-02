@@ -39,6 +39,13 @@ void Edge_detection::strategymain()
     {
         imshow("view", orign_img);
         waitKey(30);
+        Canny(orign_img, edge, 50, 150, 3);
+        imshow("edge", edge);
+        waitKey(30);
+        cvtColor(edge, frame, cv::COLOR_GRAY2BGR);
+        edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
+        edgeimage_Publisher.publish(edgeimage_msg);
+        
     }
     checkImageSource = false;
 }

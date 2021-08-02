@@ -58,7 +58,7 @@
 			#container {
 			background-color: #333;
 			border: 2px black solid;
-			width: 800px;
+			width: 900px;
 			height: 800px;
 			margin: 20px auto;
 			overflow: visible;
@@ -69,7 +69,7 @@
 			width: 320px;
 			height: 240px;
 			border: 1px #FFF solid;
-			margin: 25px 32px 24px 32px;
+			margin: 10px 10px 30px 10px;
 			float: left;
 			display: inline;
 		}
@@ -78,10 +78,19 @@
 			width: 320px;
 			height: 240px;
 			border: 1px #FFF solid;
-			margin: 25px 32px 24px 32px;
+			margin: 10px 10px 30px 10px;
+			float: left;
+			display: inline;
+		}
+
+		#select {
+			width: 160px;
+			height: 180px;
+			margin: 10px 40px 10px 10px;
 			float: right;
 			display: inline;
 		}
+
 
 		</style>
 	<script type="text/javascript" src="./js/roslib/eventemitter2.min.js"></script>
@@ -225,6 +234,28 @@
 			width: [0],
 			height: [0]
 		});
+		var Camera = new ROSLIB.Topic({
+			ros: ros,
+			name: '/Camera_Topic',
+			messageType: 'tku_msgs/camera'
+		});
+		var CameraMsg = new ROSLIB.Message({
+			brightness: 0.5,
+			contrast: 0.5,
+			saturation: 0.5,
+			white_balance: 0.5,
+			auto_white_balance: false,
+			auto_exposure: false,
+			auto_Backlight_Compensation: false
+		});
+		var CameraInfoClient = new ROSLIB.Service({
+			ros: ros,
+			name: '/CameraInfo',
+			serviceType: 'tku_msgs/CameraInfo'
+		});
+		var LoadCamerareqrest = new ROSLIB.ServiceRequest({
+			Load: true
+		});
 
 		//-----
 		var SensorPackage_Subscriber = null;
@@ -301,6 +332,13 @@
 		var field_x_2 = field_x/2;
 		var field_y_2 = field_y/2;
 
+		var CamBrightnessValue = 0;
+		var CamContrastValue = 0;
+		var CamSaturationValue = 0;
+		var CamWhiteBalanceValue = 0;
+		var CamAuto_WhiteBalanceValue = false;
+		var CamAuto_ExposureValue = false;
+		
 		function createTopics() 
 		{
 			if(solution_Subscriber != null)
@@ -657,7 +695,174 @@
 			console.log("Connecting address is", myAddress)
 			ros.connect("ws://" + myAddress + ":9090");
 			document.getElementById("orign_image").src = "http://" + myAddress + ":8080/stream?topic=/orign_image";
-			document.getElementById("color_image").src = "http://" + myAddress + ":8080/stream?topic=/colormodel_image";
+			document.getElementById("color_image").src = "http://" + myAddress + ":8080/stream?topic=/edge_image";
+		}
+		
+		function showCamBrightness(newValue) {
+			document.getElementById("CamBrightnessValue").value = newValue;
+			CamBrightnessValue = newValue;
+			CameraMsg.brightness = Number(CamBrightnessValue);
+			CameraMsg.contrast = Number(CamContrastValue);
+			CameraMsg.saturation = Number(CamSaturationValue);
+			CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+			CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+			CameraMsg.auto_exposure = CamAuto_ExposureValue;
+			Camera.publish(CameraMsg);
+
+		}
+		function rangeCamBrightnessValue(newValue) {
+			document.getElementById("CamBrightness").value = newValue;
+			CamBrightnessValue = newValue;
+			CameraMsg.brightness = Number(CamBrightnessValue);
+			CameraMsg.contrast = Number(CamContrastValue);
+			CameraMsg.saturation = Number(CamSaturationValue);
+			CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+			CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+			CameraMsg.auto_exposure = CamAuto_ExposureValue;
+			Camera.publish(CameraMsg);
+		}
+		function showCamContrast(newValue) {
+			document.getElementById("CamContrastValue").value = newValue;
+			CamContrastValue = newValue;
+			CameraMsg.brightness = Number(CamBrightnessValue);
+			CameraMsg.contrast = Number(CamContrastValue);
+			CameraMsg.saturation = Number(CamSaturationValue);
+			CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+			CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+			CameraMsg.auto_exposure = CamAuto_ExposureValue;
+			Camera.publish(CameraMsg);
+
+		}
+		function rangeCamContrastValue(newValue) {
+			document.getElementById("CamContrast").value = newValue;
+			CamContrastValue = newValue;
+			CameraMsg.brightness = Number(CamBrightnessValue);
+			CameraMsg.contrast = Number(CamContrastValue);
+			CameraMsg.saturation = Number(CamSaturationValue);
+			CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+			CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+			CameraMsg.auto_exposure = CamAuto_ExposureValue;
+			Camera.publish(CameraMsg);
+		}
+		function showCamSaturation(newValue) {
+			document.getElementById("CamSaturationValue").value = newValue;
+			CamSaturationValue = newValue;
+			CameraMsg.brightness = Number(CamBrightnessValue);
+			CameraMsg.contrast = Number(CamContrastValue);
+			CameraMsg.saturation = Number(CamSaturationValue);
+			CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+			CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+			CameraMsg.auto_exposure = CamAuto_ExposureValue;
+			Camera.publish(CameraMsg);
+
+		}
+		function rangeCamSaturationValue(newValue) {
+			document.getElementById("CamSaturation").value = newValue;
+			CamSaturationValue = newValue;
+			CameraMsg.brightness = Number(CamBrightnessValue);
+			CameraMsg.contrast = Number(CamContrastValue);
+			CameraMsg.saturation = Number(CamSaturationValue);
+			CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+			CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+			CameraMsg.auto_exposure = CamAuto_ExposureValue;
+			Camera.publish(CameraMsg);
+		}
+		function showCamWhiteBalance(newValue) {
+			document.getElementById("CamWhiteBalanceValue").value = newValue;
+			CamWhiteBalanceValue = newValue;
+			CameraMsg.brightness = Number(CamBrightnessValue);
+			CameraMsg.contrast = Number(CamContrastValue);
+			CameraMsg.saturation = Number(CamSaturationValue);
+			CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+			CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+			CameraMsg.auto_exposure = CamAuto_ExposureValue;
+			Camera.publish(CameraMsg);
+
+		}
+		function rangeCamWhiteBalanceValue(newValue) {
+			document.getElementById("CamWhiteBalance").value = newValue;
+			CamWhiteBalanceValue = newValue;
+			CameraMsg.brightness = Number(CamBrightnessValue);
+			CameraMsg.contrast = Number(CamContrastValue);
+			CameraMsg.saturation = Number(CamSaturationValue);
+			CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+			CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+			CameraMsg.auto_exposure = CamAuto_ExposureValue;
+			Camera.publish(CameraMsg);
+		}
+		function changeAutoWhitBlance() {
+			if (document.getElementById("AutoWhitBlance").checked) {
+				CamAuto_WhiteBalanceValue = true;
+			} else {
+				CamAuto_WhiteBalanceValue = false;
+			}
+			CameraMsg.brightness = Number(CamBrightnessValue);
+			CameraMsg.contrast = Number(CamContrastValue);
+			CameraMsg.saturation = Number(CamSaturationValue);
+			CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+			CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+			CameraMsg.auto_exposure = CamAuto_ExposureValue;
+			Camera.publish(CameraMsg);
+		}
+		function changeAutoExposure() {
+			if (document.getElementById("AutoExposure").checked) {
+				CamAuto_ExposureValue = true;
+			} else {
+				CamAuto_ExposureValue = false;
+			}
+			CameraMsg.brightness = Number(CamBrightnessValue);
+			CameraMsg.contrast = Number(CamContrastValue);
+			CameraMsg.saturation = Number(CamSaturationValue);
+			CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+			CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+			CameraMsg.auto_exposure = CamAuto_ExposureValue;
+			Camera.publish(CameraMsg);
+		}
+
+		function CameraSetUp() {
+			if (B_SetupCamera_Flag) {
+				CameraInfoClient.callService(LoadCamerareqrest, function (LoadCameraresult) {
+					CamBrightnessValue = LoadCameraresult.brightness;
+					CamContrastValue = LoadCameraresult.contrast;
+					CamSaturationValue = LoadCameraresult.saturation;
+					CamWhiteBalanceValue = LoadCameraresult.white_balance;
+					CamAuto_WhiteBalanceValue = LoadCameraresult.auto_white_balance;
+					CamAuto_ExposureValue = LoadCameraresult.auto_exposure;
+
+					document.getElementById("CamBrightness").value = CamBrightnessValue;
+					document.getElementById("CamBrightnessValue").value = CamBrightnessValue;
+					document.getElementById("CamContrast").value = CamContrastValue;
+					document.getElementById("CamContrastValue").value = CamContrastValue;
+					document.getElementById("CamSaturation").value = CamSaturationValue;
+					document.getElementById("CamSaturationValue").value = CamSaturationValue;
+					document.getElementById("CamWhiteBalance").value = CamWhiteBalanceValue;
+					document.getElementById("CamWhiteBalanceValue").value = CamWhiteBalanceValue;
+					document.getElementById("AutoWhitBlance").checked = CamAuto_WhiteBalanceValue;
+					document.getElementById("AutoExposure").checked = CamAuto_ExposureValue;
+
+					CameraMsg.brightness = Number(CamBrightnessValue);
+					CameraMsg.contrast = Number(CamContrastValue);
+					CameraMsg.saturation = Number(CamSaturationValue);
+					CameraMsg.white_balance = Number(CamWhiteBalanceValue);
+					CameraMsg.auto_white_balance = CamAuto_WhiteBalanceValue;
+					CameraMsg.auto_exposure = CamAuto_ExposureValue;
+					Camera.publish(CameraMsg);
+				});
+				document.getElementById("Camera").style.display = "inline";
+				document.getElementById("container").style.height = "710px";
+				document.getElementById("select").style.height = "400px";
+				B_SetupCamera_Flag = false;
+			} else {
+				document.getElementById("Camera").style.display = "none";
+				if (B_ColorModelForm_Flag == false) {
+					document.getElementById("container").style.height = "810px";
+					document.getElementById("select").style.height = "400px";
+				} else {
+					document.getElementById("container").style.height = "500px";
+					document.getElementById("select").style.height = "180px";
+				}
+				B_SetupCamera_Flag = true;
+			}
 		}
 
 		function LeftTurnFun() {
@@ -2010,32 +2215,35 @@
 			<div id="div_orign_image">
 				<img id="orign_image" style="-webkit-user-select: none; display:inline;" src="http://172.17.121.10:8080/stream?topic=/orign_image">
 			</div>
-
 			<div id="div_color_image">
 				<img id="color_image" style="-webkit-user-select: none; display:inline;" src="http://172.17.121.10:8080/stream?topic=/colormodel_image">
-
 			</div>
-			<!-- <div id="select">
+			
+
+			
+			<div id="select">
 				<div>
 				</div>
 				<div id="Camera">
-					<div style="float:left; margin-left:8px;">
-						<input type="checkbox" name="AutoWhitBlance" id="AutoWhitBlance" onclick="changeAutoWhitBlance()">Auto White_blance
-					</div>
-					<div style="float:right; margin-right:12px;">
-						<input type="checkbox" name="AutoExposure" id="AutoExposure" onclick="changeAutoExposure()">Auto Exposure
-					</div>
-					<table width="320">
+					<table width="20">
+						<tr>
+							<p>
+								<input type="checkbox" name="AutoWhitBlance" id="AutoWhitBlance" onclick="changeAutoWhitBlance()">Auto White_blance
+							</p>
+						</tr>
+						<tr>
+							<input type="checkbox" name="AutoExposure" id="AutoExposure" onclick="changeAutoExposure()">Auto Exposure
+						</tr>
 						<tr>
 							<td colspan="3">
 								<p class="text">Camera Brightness:</p>
 							</td>
 						</tr>
 						<tr>
-							<td width="25"></td>
-							<td><input class="Range" id="CamBrightness" name="CamBrightness" type="range" min="0" max="255" value="50"
+							<td width="20"></td>
+							<td><input class="Range" id="CamBrightness" name="CamBrightness" type="range" min="0" max="255" value="50" 
 								 oninput="showCamBrightness(this.value)" /></td>
-							<td><input type="text" class="ValueText" id="CamBrightnessValue" size="12" value="50" onchange="rangeCamBrightnessValue(this.value)" /></td>
+							<td><input type="text" class="ValueText" id="CamBrightnessValue" size="1" value="50" onchange="rangeCamBrightnessValue(this.value)" /></td>
 						</tr>
 						<tr>
 							<td colspan="3">
@@ -2043,9 +2251,9 @@
 							</td>
 						</tr>
 						<tr>
-							<td width="25"></td>
+							<td width="20"></td>
 							<td><input class="Range" id="CamContrast" name="CamContrast" type="range" min="0" max="10" value="5" oninput="showCamContrast(this.value)" /></td>
-							<td><input type="text" class="ValueText" id="CamContrastValue" size="12" value="5" onchange="rangeCamContrastValue(this.value)" /></td>
+							<td><input type="text" class="ValueText" id="CamContrastValue" size="1" value="5" onchange="rangeCamContrastValue(this.value)" /></td>
 						</tr>
 						<tr>
 							<td colspan="3">
@@ -2053,10 +2261,10 @@
 							</td>
 						</tr>
 						<tr>
-							<td width="25"></td>
+							<td width="20"></td>
 							<td><input class="Range" id="CamSaturation" name="CamSaturation" type="range" min="0" max="255" value="50"
 								 oninput="showCamSaturation(this.value)" /></td>
-							<td><input type="text" class="ValueText" id="CamSaturationValue" size="12" value="50" onchange="rangeCamSaturationValue(this.value)" /></td>
+							<td><input type="text" class="ValueText" id="CamSaturationValue" size="1" value="50" onchange="rangeCamSaturationValue(this.value)" /></td>
 						</tr>
 						<tr>
 							<td colspan="3">
@@ -2064,15 +2272,15 @@
 							</td>
 						</tr>
 						<tr>
-							<td width="25"></td>
+							<td width="20"></td>
 							<td><input class="Range" id="CamWhiteBalance" name="CamWhiteBalance" type="range" min="0" max="8000" value="4000"
 								 oninput="showCamWhiteBalance(this.value)" /></td>
-							<td><input type="text" class="ValueText" id="CamWhiteBalanceValue" size="12" value="4000" onchange="rangeCamWhiteBalanceValue(this.value)" /></td>
+							<td><input type="text" class="ValueText" id="CamWhiteBalanceValue" size="1" value="4000" onchange="rangeCamWhiteBalanceValue(this.value)" /></td>
 						</tr>
 					</table>
 				</div>
-			</div> -->
-			<div id="filedarea">
+			</div>
+			<div id="filedarea" align="left">
 				<canvas id="SoccerFiled" width="650" height="490"></canvas>
 			</div>
 		</div>

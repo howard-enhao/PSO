@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	tku_msgs
 	tku_libs
+	image_transport
 )
 
 find_package(OpenCV)

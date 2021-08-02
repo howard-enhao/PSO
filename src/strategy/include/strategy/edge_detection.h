@@ -13,6 +13,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
 #include "tku_libs/strategy_info.h"
 #include "tku_libs/TKU_tool.h"
 #include "tku_libs/RosCommunication.h"
@@ -32,15 +33,20 @@ class Edge_detection
         {
             strategy_info = StrategyInfoInstance::getInstance();
             Imagesource_subscriber = nh.subscribe("/usb_cam/image_raw", 10, &Edge_detection::Catch_image, this);
+            image_transport::ImageTransport it(nh);
+            edgeimage_Publisher = it.advertise("edge_image", 1);
         };
         ~Edge_detection(){};
 
         ros::Subscriber Imagesource_subscriber;
         StrategyInfoInstance *strategy_info;
+        image_transport::Publisher edgeimage_Publisher;
+        sensor_msgs::ImagePtr edgeimage_msg;
         void strategymain();
         void Catch_image(const sensor_msgs::ImageConstPtr& msg);
         Mat edge;
         Mat orign_img;
+        Mat frame;
         bool checkRealImage = false;
         bool checkImageSource = false;
     // private:
