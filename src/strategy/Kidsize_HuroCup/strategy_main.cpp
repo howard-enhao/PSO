@@ -145,7 +145,12 @@ void Obstaclefreearea(const strategy::obstacle &msg)
         float obstacle_ymax = obstacle_y + obstacle_height/2;
         ROS_INFO("NO.%d", i+1);
         
-        if(abs(obstacle_x-*(free_coordinate)) >= abs(obstacle_y-*(free_coordinate+1)) && obstacle_x-*(free_coordinate) > *(free_coordinate))
+        if(obstacle_xmin<0 && obstacle_xmax>0 && obstacle_ymin<0 && obstacle_ymax>0)
+        {
+            obs_side = centor_side;
+            ROS_INFO("centor_side");
+        }
+        else if(abs(obstacle_x-*(free_coordinate)) >= abs(obstacle_y-*(free_coordinate+1)) && obstacle_x-*(free_coordinate) > *(free_coordinate))
         {
             obs_side = right_side;
             ROS_INFO("right_side");
@@ -174,6 +179,14 @@ void Obstaclefreearea(const strategy::obstacle &msg)
         
         switch (obs_side)
         {
+            case centor_side:
+                free_limit[0] = obstacle_xmin;
+                free_limit[1] = obstacle_xmax;
+                free_limit[2] = obstacle_ymin;
+                free_limit[3] = obstacle_ymax;
+                *(free_coordinate) = obstacle_x;
+                *(free_coordinate+1) = obstacle_y;
+                break;
             case right_side:
                 free_limit[1] = obstacle_xmin;
                 *(free_coordinate) = (free_limit[0]+free_limit[1])/2;
