@@ -6,6 +6,8 @@
 #include <vector>
 #include <stdio.h>
 #include <cmath>
+#include <map>
+#include <stack>
 #include <algorithm>
 #include <std_msgs/String.h>
 #include <opencv2/highgui/highgui.hpp>
@@ -23,8 +25,11 @@
 #include "sensor_msgs/Image.h"
 #include <sensor_msgs/image_encodings.h>
 #include "strategy/pso.h"
+#include "strategy/computational_geometry.h"
 using namespace std;
 using namespace cv;
+
+
 
 class Edge_detection 
 {
@@ -35,11 +40,13 @@ class Edge_detection
             Imagesource_subscriber = nh.subscribe("/usb_cam/image_raw", 10, &Edge_detection::Catch_image, this);
             image_transport::ImageTransport it(nh);
             edgeimage_Publisher = it.advertise("edge_image", 1);
+            Computational_geometry = Computational_geometryInstance::getInstance();
         };
         ~Edge_detection(){};
 
         ros::Subscriber Imagesource_subscriber;
         StrategyInfoInstance *strategy_info;
+        Computational_geometryInstance *Computational_geometry;
         image_transport::Publisher edgeimage_Publisher;
         sensor_msgs::ImagePtr edgeimage_msg;
         void strategymain();
@@ -51,5 +58,8 @@ class Edge_detection
         bool checkImageSource = false;
     // private:
 };
+
+
+
 
 #endif // IMAGEMAIN_H
