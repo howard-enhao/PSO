@@ -27,6 +27,10 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/core/core.hpp>
 #include <cv_bridge/cv_bridge.h>
 
 using namespace cv;
@@ -43,12 +47,12 @@ using namespace std;
 
 struct Line
 {
-    Point3i s;    // 起點
-    Point3i e;    // 終點
+    Point3f s;    // 起點
+    Point3f e;    // 終點
     bool is_seg; // 是否是線段
 
     Line() {};    // 預設建構函式
-    Line(Point3i a, Point3i b, bool _is_seg = true) { s = a; e = b; is_seg = _is_seg; }    // 建構函式(預設是線段)
+    Line(Point3f a, Point3f b, bool _is_seg = true) { s = a; e = b; is_seg = _is_seg; }    // 建構函式(預設是線段)
 };
 
 
@@ -63,20 +67,20 @@ class Computational_geometry
         ~Computational_geometry(){};
         static Computational_geometry* getInstance();
         static void deleteInstance();
-        bool equal(const Point3i& lhs, const Point3i& rhs);
-        bool isSegIntersect(const Line& l1, const Line& l2,Point3i& inter_p);
-        void boxOfPolygon(const vector<Point3i>& polygon, Point3i& down_left, Point3i& up_right);
+        bool equal(const Point3f& lhs, const Point3f& rhs);
+        bool isSegIntersect(const Line& l1, const Line& l2,Point3f& inter_p);
+        void boxOfPolygon(const vector<Point3i>& polygon, Point3f& down_left, Point3f& up_right);
         bool isPointInPolygon(const vector<Point3i>& polygon, const Point3i& p);
-        bool isponl(const Point3i& p, const Line& l);
-        double length(const Point3i& vec);
-        double Cos(const Point3i& vec1, const Point3i& vec2);
-        double dotMultiply(const Point3i& vec1, const Point3i& vec2);
-        Point3i add(const Point3i& lhs, const Point3i& rhs);
-        Point3i mul(const Point3i& p, double ratio);
-        Point3i div(const Point3i& p, double ratio);
-        Point3i multiply(const Point3i& vec1, const Point3i& vec2);
-        Point3i normalize(const Point3i& vec);
-        Point3i sub(const Point3i& lhs, const Point3i& rhs);
+        bool isponl(const Point3f& p, const Line& l);
+        double length(const Point3f& vec);
+        double Cos(const Point3f& vec1, const Point3f& vec2);
+        double dotMultiply(const Point3f& vec1, const Point3f& vec2);
+        Point3f add(const Point3f& lhs, const Point3f& rhs);
+        Point3f mul(const Point3f& p, double ratio);
+        Point3f div(const Point3f& p, double ratio);
+        Point3f multiply(const Point3f& vec1, const Point3f& vec2);
+        Point3f normalize(const Point3f& vec);
+        Point3f sub(const Point3f& lhs, const Point3f& rhs);
     private:
         static Computational_geometry *m_pInstance;
 };
