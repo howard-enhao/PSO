@@ -239,16 +239,25 @@ void Computational_geometry::boxOfPolygon(const vector<Point3i>& polygon, Point3
     p：要判斷的點*/
 bool Computational_geometry::isPointInPolygon(const vector<Point3i>& polygon, const Point3i& p)
 {
-    Point3f down_left, up_right;
+    Point3f down_left, up_right, out_p;
     boxOfPolygon(polygon, down_left, up_right);
+
     // 位於多邊形外部一點
-    Point3f out_p = sub(down_left, Point3f(2.0, 2.0, 0.0));
+    if(down_left.x<3 || down_left.y<3)
+        out_p = add(up_right, Point3f(4.0, 4.0, 0.0));
+    else
+        out_p = sub(down_left, Point3f(2.0, 2.0, 0.0));
+    
     int cnt(0);
     Line p_line(p, out_p, true);
     Mat edge;
     Mat Contours=Mat::zeros(cv::Size(320,240),CV_8UC3);
+    Contours.at<Vec3b>(Point(p.x, p.y))[0]=255;
     Contours.at<Vec3b>(Point(p.x, p.y))[1]=255;
-    Contours.at<Vec3b>(Point(out_p.x, out_p.y))[0]=255;
+    Contours.at<Vec3b>(Point(p.x, p.y))[2]=255;
+    Contours.at<Vec3b>(Point(out_p.x, out_p.y))[0]=0;
+    Contours.at<Vec3b>(Point(out_p.x, out_p.y))[1]=255;
+    Contours.at<Vec3b>(Point(out_p.x, out_p.y))[2]=0;
 
     for (int i = 0; i < polygon.size(); ++i)
     {
@@ -256,13 +265,14 @@ bool Computational_geometry::isPointInPolygon(const vector<Point3i>& polygon, co
         Point3f e = polygon[(i + 1) % polygon.size()];
         Line seg(s, e, true);
         Point3f inter_p;
+        line(Contours, Point(polygon[i].x, polygon[i].y), Point(polygon[(i + 1) % polygon.size()].x, polygon[(i + 1) % polygon.size()].y), Scalar(89, 90, 90), 1);
         if (isSegIntersect(p_line, seg, inter_p))
         {
             Point P=Point(inter_p.x,inter_p.y);
-			Contours.at<Vec3b>(P)[2]=255;
             cnt++;
         }
     }
+    // cout<<"cnt = "<<cnt<<endl;  //cnt奇數為點在obs內，偶數則反
     imshow("inter_p",Contours);
     waitKey(30);
 
