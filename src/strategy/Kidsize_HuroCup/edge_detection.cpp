@@ -144,6 +144,7 @@ void Edge_detection::strategymain()
         }
         printf("isInObscnt = %d , PointWithinObs = %d , 第 %d 個障礙物內\n", isInObscnt, PointWithinObs, InObs);
         
+        addWeighted(Shrink, 1, edge, 0.3, 0, Shrink);
         // imshow("dist", dist);
         // imshow("ring", ring);
         imshow("Shrink", Shrink);  //縮小後的輪廓
