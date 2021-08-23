@@ -68,19 +68,25 @@ class Computational_geometry
         static Computational_geometry* getInstance();
         static void deleteInstance();
         bool equal(const Point3f& lhs, const Point3f& rhs);
+        bool isponl(const Point3f& p, const Line& l);
         bool isSegIntersect(const Line& l1, const Line& l2,Point3f& inter_p);
         void boxOfPolygon(const vector<Point3i>& polygon, Point3f& down_left, Point3f& up_right);
         bool isPointInPolygon(const vector<Point3i>& polygon, const Point3i& p);
-        bool isponl(const Point3f& p, const Line& l);
-        double length(const Point3f& vec);
-        double Cos(const Point3f& vec1, const Point3f& vec2);
+        bool isCircleInPolygon(const vector<Point3i>& polygon, const Point3i& c, double radius);
+
         double dotMultiply(const Point3f& vec1, const Point3f& vec2);
+        double length(const Point3f& vec);
+        double ptolDistance(const Point3i& p, const Line& l);
+        double Cos(const Point3f& vec1, const Point3f& vec2);
         Point3f add(const Point3f& lhs, const Point3f& rhs);
+        Point3f sub(const Point3f& lhs, const Point3f& rhs);
         Point3f mul(const Point3f& p, double ratio);
         Point3f div(const Point3f& p, double ratio);
-        Point3f multiply(const Point3f& vec1, const Point3f& vec2);
+        Point3f ptolProjection(const Point3f& p, const Line& l);
         Point3f normalize(const Point3f& vec);
-        Point3f sub(const Point3f& lhs, const Point3f& rhs);
+        Point3f multiply(const Point3f& vec1, const Point3f& vec2);
+        int segToCircle(const Point3f& c, double radius, const Line& l);
+
     private:
         static Computational_geometry *m_pInstance;
 };

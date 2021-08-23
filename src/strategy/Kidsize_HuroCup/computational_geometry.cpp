@@ -65,10 +65,22 @@ Point3f Computational_geometry::div(const Point3f& p, double ratio)
     return res;
 }
 
-/*  判斷點是否相等*/
-bool Computational_geometry::equal(const Point3f& lhs, const Point3f& rhs)
+/*  點到線ㄉ投影點
+    p：點
+    l：線*/
+Point3f Computational_geometry::ptolProjection(const Point3f& p, const Line& l)
 {
-    return(lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z);
+    Point3f line_vec = sub(l.e, l.s);
+    Point3f point_vec = sub(p, l.s);
+    Point3f unit_line_vec = normalize(line_vec);
+
+    // 投影長度
+    double project_len = dotMultiply(point_vec, unit_line_vec);
+
+    // 投影點
+    Point3f project_p = add(l.s,mul(unit_line_vec, project_len));
+
+    return project_p;
 }
 
 /*  向量標準化
@@ -80,14 +92,6 @@ Point3f Computational_geometry::normalize(const Point3f& vec)
     res = div(vec, length(vec));
 
     return res;
-}
-
-/*  向量點乘
-    vec1：向量1
-    vec2：向量2*/
-double Computational_geometry::dotMultiply(const Point3f& vec1, const Point3f& vec2)
-{
-    return(vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z);
 }
 
 /*  向量叉乘
@@ -104,11 +108,38 @@ Point3f Computational_geometry::multiply(const Point3f& vec1, const Point3f& vec
     return result;
 }
 
+/*  向量點乘
+    vec1：向量1
+    vec2：向量2*/
+double Computational_geometry::dotMultiply(const Point3f& vec1, const Point3f& vec2)
+{
+    return(vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z);
+}
+
 /*  向量長度
     vec：向量*/
 double Computational_geometry::length(const Point3f& vec)
 {
     return (sqrt(pow(vec.x, 2) + pow(vec.y, 2) + pow(vec.z, 2)));
+}
+
+/*  點到線ㄉ距離
+    p：點
+    l：線*/
+double Computational_geometry::ptolDistance(const Point3i& p, const Line& l)
+{
+    Point3i line_vec = sub(l.e,l.s);
+    Point3i point_vec = sub(p, l.s);
+    // cout<<l.e<<","<<l.s<<","<<p<<endl;
+    // cout<<line_vec<<","<<point_vec<<endl;
+    // 計算點線上段投影長度
+    double project_len = dotMultiply(line_vec, point_vec) / length(line_vec);
+
+    // 點的距離(勾股定理)
+    double distance = sqrt(pow(length(point_vec), 2) - pow(project_len, 2));
+    // printf("sqrt(%f-%f,2)\n", pow(length(point_vec), 2), pow(project_len, 2));
+    // printf("project_len= %f, distance=%f\n", project_len, distance);
+    return distance;
 }
 
 double Computational_geometry::Cos(const Point3f& vec1, const Point3f& vec2)
@@ -117,6 +148,12 @@ double Computational_geometry::Cos(const Point3f& vec1, const Point3f& vec2)
     Point3f unit_vec2 = normalize(vec2);
 
     return dotMultiply(unit_vec1, unit_vec2);
+}
+
+/*  判斷點是否相等*/
+bool Computational_geometry::equal(const Point3f& lhs, const Point3f& rhs)
+{
+    return(lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z);
 }
 
 /*  點是否在線上
@@ -250,7 +287,6 @@ bool Computational_geometry::isPointInPolygon(const vector<Point3i>& polygon, co
     
     int cnt(0);
     Line p_line(p, out_p, true);
-    Mat edge;
     Mat Contours=Mat::zeros(cv::Size(320,240),CV_8UC3);
     Contours.at<Vec3b>(Point(p.x, p.y))[0]=255;
     Contours.at<Vec3b>(Point(p.x, p.y))[1]=255;
@@ -277,4 +313,65 @@ bool Computational_geometry::isPointInPolygon(const vector<Point3i>& polygon, co
     waitKey(30);
 
     return (cnt % 2 == 1);
+}
+
+/*  線段與圓ㄉ關係
+    c：圓心
+    radius：半徑
+    l：判斷的線段
+    return：0=圓內，1=與圓香蕉，2=圓外*/
+int Computational_geometry::segToCircle(const Point3f& c, double radius, const Line& l)
+{
+    double ctol_d = ptolDistance(c, l);
+    // printf("ctol = %f, radius = %f\n", ctol_d, radius);
+    if (ctol_d > radius)
+        return 2;
+    else if (ctol_d == radius)
+        return 1;
+    else
+    {
+        Point3f project_p = ptolProjection(c, l);
+        if (isponl(project_p, l))
+            return 1;
+        else
+            return 2;
+    }
+}
+
+/*  判斷圓是否在多邊形內部
+    polygon：多邊形的點
+    c：要判斷的圓心
+    radius：要判斷的半徑*/
+bool Computational_geometry::isCircleInPolygon(const vector<Point3i>& polygon, const Point3i& c, double radius)
+{
+    if(isPointInPolygon(polygon, c))
+    {
+        Mat Contours=Mat::zeros(cv::Size(320,240),CV_8UC3);
+        Contours.at<Vec3b>(Point(c.x, c.y))[0]=255;
+        Contours.at<Vec3b>(Point(c.x, c.y))[1]=255;
+        Contours.at<Vec3b>(Point(c.x, c.y))[2]=255;
+        
+        for (int i = 0; i < polygon.size(); ++i)
+        {
+            line(Contours, Point(polygon[i].x, polygon[i].y), Point(polygon[(i + 1) % polygon.size()].x, polygon[(i + 1) % polygon.size()].y), Scalar(89, 90, 90), 1);
+            const Point3i& p1 = polygon[i];
+            const Point3i& p2 = polygon[(i + 1) % polygon.size()];
+            Line line(p1, p2, true);
+            circle(Contours, Point(c.x, c.y), radius, Scalar(0,255,0));
+            // printf("= %d\n", segToCircle(c, radius, line));
+            if (segToCircle(c, radius, line) != 2)
+            {
+                imshow("inter_p",Contours);
+                waitKey(30);
+                return false;
+            }
+        }
+        imshow("inter_p",Contours);
+        waitKey(30);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }

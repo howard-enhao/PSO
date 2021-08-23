@@ -74,10 +74,6 @@ void Edge_detection::strategymain()
         // printf("Matrix: %s %dx%d \n\n\n\n", edge_type.c_str(), edge.cols, edge.rows );
 
         vector<Point3i> edge_point;
-        int isInObscnt = 0;
-        int preisInObscnt = 0;
-        bool PointWithinObs = false;
-        int InObs = -1;
 
         /*  繪製原始輪廓與顯示輪廓點集 */
         // vector<vector<Point>> contours;
@@ -103,6 +99,10 @@ void Edge_detection::strategymain()
 
         for(int i=0;i<ring_contours.size();i++)
         {
+            bool PointWithinObs = false;
+            int InObs = -1;
+            bool CCRisInObs = false;
+            
             // contours[i]代表的是第i個輪廓，contours[i].size()代表的是第i個輪廓上所有的像素點數
             // for(int j=0;j<contours[i].size();j++) 
             // {
@@ -127,23 +127,22 @@ void Edge_detection::strategymain()
             string str=ch;
             cout<<"向量hierarchy的第" <<str<<" 個元素内容為："<<ring_hierarchy[i]<<endl<<endl;
             // printf("point  %d\n", Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0)));
-            isInObscnt += Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0));
-            if(isInObscnt != preisInObscnt)
+            // printf("point = %d\n", Computational_geometry->isCircleInPolygon(edge_point, Point3i(200, 120, 0), 5));
+            CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(70, 80, 0), 20);
+            // PointWithinObs = Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0));
+            edge_point.clear();
+
+            // drawContours(imageContours,contours,i,Scalar(255),1,8,hierarchy);    // 繪製輪廓
+            drawContours(Shrink,ring_contours,i,Scalar(255),1,8,ring_hierarchy);    // 繪製輪廓
+            
+            if(PointWithinObs || CCRisInObs)
             {
-                PointWithinObs = true;
                 InObs = stoi(str);
-                preisInObscnt = isInObscnt;
+                printf("可踏步在第 %d 個障礙物內\n", InObs);
                 // break;
             }
-            edge_point.clear();
             cout<<endl<<endl<<endl;
-            // 繪製輪廓
-            // drawContours(imageContours,contours,i,Scalar(255),1,8,hierarchy);
-            drawContours(Shrink,ring_contours,i,Scalar(255),1,8,ring_hierarchy);
-        
         }
-        printf("isInObscnt = %d , PointWithinObs = %d , 第 %d 個障礙物內\n", isInObscnt, PointWithinObs, InObs);
-        
         addWeighted(Shrink, 1, edge, 0.3, 0, Shrink);
         // imshow("dist", dist);
         // imshow("ring", ring);
