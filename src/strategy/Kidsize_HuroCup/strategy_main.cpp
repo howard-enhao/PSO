@@ -40,6 +40,7 @@ bool on_floor = false;
 bool init = true;
 float obs_coordinate[2] = {0};
 float free_limit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/
+float freelimit[4] = {80, 160, 90, 230};
 float *free_coordinate[2] = {0}; /**free_coordinate = [x, y]*/
 
     /*foot width = 60 , foot hight = 80*/
@@ -77,8 +78,8 @@ double pso_sphere(double *pos, int dim, void *params) {
     float Tdsp = 0, Tssp = 0;
     double sum_objective_function = 0;
     double objective_function[4] = {0};
-    objective_function[0] = w1*abs(0-pos[0]);  /*X direction*/
-    objective_function[1] = w2*abs(0-pos[1]);  /*Y direction*/
+    objective_function[0] = w1*abs(160-pos[0]);  /*X direction*/
+    objective_function[1] = w2*abs(120-pos[1]);  /*Y direction*/
     objective_function[2] = w3*abs(theta-theta);               /*Rotation*/
     objective_function[3] = w4*(Tdsp+Tssp);                    /*step period*/
     ROS_INFO("pos[0] = %f, pos[1] = %f", pos[0], pos[1]);
@@ -277,7 +278,7 @@ int main(int argc, char **argv) {
             if(init)
             {
                 for(int i = 0; i<4; i++)
-                    freecoordinate.step_space.push_back(free_limit[i]);
+                    freecoordinate.step_space.push_back(freelimit[i]);
                 pub_stepspace.publish( freecoordinate );
                 freecoordinate.step_space.clear();
                 init = false;
@@ -290,7 +291,7 @@ int main(int argc, char **argv) {
             // handle the default case (no argument given)
             if (obj_fun == NULL || settings == NULL) {
                 obj_fun = pso_sphere;
-                settings = pso_settings_new(2, &free_limit[0], &obs_coordinate[0]);
+                settings = pso_settings_new(2, &freelimit[0], &obs_coordinate[0]);
                 // settings = pso_settings_new(2, -100, 100);
                 printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n", settings->dim, settings->size);
             }

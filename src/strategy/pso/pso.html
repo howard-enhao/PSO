@@ -327,8 +327,8 @@
 		var particlecnt = 0;
 		var stepspaceArray = [];
 		var solutionArray = [];
-		var field_x = 650;
-		var field_y = 490;
+		var field_x = 650; //320*2+10
+		var field_y = 490; //240*2+10
 		var field_x_2 = field_x/2;
 		var field_y_2 = field_y/2;
 
@@ -352,8 +352,8 @@
 			});
 			solution_Subscriber.subscribe(function (msg)
 			{
-				solutionArray[0] = msg.x*3;
-				solutionArray[1] = msg.y*3;
+				solutionArray[0] = msg.x*2;
+				solutionArray[1] = msg.y*2;
 				drawField();
 				// put_solutioncoordinate();
 			});
@@ -372,7 +372,7 @@
 				stepspaceArray = msg.step_space;
 				for(var i=0; i<4; i++)
 				{
-					stepspaceArray[i] = msg.step_space[i]*3;
+					stepspaceArray[i] = msg.step_space[i]*2;
 				}
 				drawField();
 				// put_stepspace();
@@ -393,8 +393,8 @@
 				particlecnt = msg.cnt;
 				for(var i=0; i<particlecnt; i++)
 				{
-					particleArray[i][0] = msg.x[0,i]*3;
-					particleArray[i][1] = msg.y[0,i]*3;
+					particleArray[i][0] = msg.x[0,i]*2;
+					particleArray[i][1] = msg.y[0,i]*2;
 					// drawField();
 					// console.log(i, msg.x[0,i], msg.y[0,i]);
 					// console.log(msg.x);
@@ -611,9 +611,11 @@
 				}
 				context.strokeStyle = '#FF0000';
 				context.lineWidth = 1;
-				context.strokeRect(solutionArray[0]+field_x_2-60*3/2, solutionArray[1]+field_y_2-80*3/2, 60*3, 80*3); //(x,y,width,height)
+				// context.strokeRect(solutionArray[0]+field_x_2-60*3/2, solutionArray[1]+field_y_2-80*3/2, 60*3, 80*3); //(x,y,width,height)
+				context.strokeRect(solutionArray[0]-30*2+5, solutionArray[1]-40*2+5, 60*2, 80*2); //(x,y,width,height)
 				context.beginPath();
-				context.arc(solutionArray[0]+field_x_2, solutionArray[1]+field_y_2, 2, 0, 2 * Math.PI);
+				// context.arc(solutionArray[0]+field_x_2, solutionArray[1]+field_y_2, 2, 0, 2 * Math.PI);
+				context.arc(solutionArray[0]+5, solutionArray[1]+5, 2, 0, 2 * Math.PI);
 				context.stroke();
 				console.log(solutionArray);
 			}
@@ -626,9 +628,11 @@
 				}
 				context.strokeStyle = '#F9F900';
 				context.lineWidth = 1;
-				context.strokeRect((stepspaceArray[0]+stepspaceArray[1])/2+field_x_2-(stepspaceArray[1]-stepspaceArray[0])/2, (stepspaceArray[2]+stepspaceArray[3])/2+field_y_2-(stepspaceArray[3]-stepspaceArray[2])/2, stepspaceArray[1]-stepspaceArray[0], stepspaceArray[3]-stepspaceArray[2]); //(x,y,width,height)
+				// context.strokeRect((stepspaceArray[0]+stepspaceArray[1])/2+field_x_2-(stepspaceArray[1]-stepspaceArray[0])/2, (stepspaceArray[2]+stepspaceArray[3])/2+field_y_2-(stepspaceArray[3]-stepspaceArray[2])/2, stepspaceArray[1]-stepspaceArray[0], stepspaceArray[3]-stepspaceArray[2]); //(x,y,width,height)
+				context.strokeRect(stepspaceArray[0]+5, stepspaceArray[2]+5, stepspaceArray[1]-stepspaceArray[0], stepspaceArray[3]-stepspaceArray[2]);
 				context.beginPath();
-				context.arc((stepspaceArray[0]+stepspaceArray[1])/2+field_x_2, (stepspaceArray[2]+stepspaceArray[3])/2+field_y_2, 2, 0, 2 * Math.PI);
+				// context.arc((stepspaceArray[0]+stepspaceArray[1])/2+field_x_2, (stepspaceArray[2]+stepspaceArray[3])/2+field_y_2, 2, 0, 2 * Math.PI);
+				context.arc((stepspaceArray[0]+stepspaceArray[1])/2+5, (stepspaceArray[2]+stepspaceArray[3])/2+5, 2, 0, 2 * Math.PI);
 				context.stroke();
 				// context.strokeRect(5,5,600,600); //(x,y,width,height)
 				// console.log(stepspaceArray);
@@ -659,13 +663,17 @@
 						context.lineWidth = 1;
 						context.fillStyle = '#d1e0d1';
 						context.strokeStyle = '#d1e0d1';
-						context.arc(parseInt(particleArray[i][0])+field_x_2, parseInt(particleArray[i][1])+field_y_2, 2, 0, Math.PI * 2);
+						console.log(particleArray);
+						// context.arc(parseInt(particleArray[i][0])+field_x_2, parseInt(particleArray[i][1])+field_y_2, 2, 0, Math.PI * 2);
+						context.arc(parseInt(particleArray[i][0])+5, parseInt(particleArray[i][1])+5, 2, 0, Math.PI * 2);
+						
 						context.stroke();
 						// context.beginPath();
 						// context.strokeStyle = 'blue';
 						context.lineWidth = 1;
 						context.strokeStyle = 'blue';
-						context.strokeRect(parseInt(particleArray[i][0])+field_x_2-90, parseInt(particleArray[i][1])+field_y_2-120, 60*3, 80*3); //(x,y,width,height)
+						// context.strokeRect(parseInt(particleArray[i][0])+field_x_2-90, parseInt(particleArray[i][1])+field_y_2-120, 60*3, 80*3); //(x,y,width,height)
+						context.strokeRect(parseInt(particleArray[i][0])-30*2+5, parseInt(particleArray[i][1])-40*2+5, 60*2, 80*2); //(x,y,width,height)
 
 						// context.lineWidth = 1;
 						// console.log(i);
@@ -691,6 +699,7 @@
 			}
 		function enterAddress() {
 			drawField() ;
+			init();
 			if(connectFlag)
 			{
 				ros.close();

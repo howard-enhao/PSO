@@ -10,20 +10,23 @@
 // === NEIGHBORHOOD SCHEMES ===
 
 // global best topology
-#define PSO_NHOOD_GLOBAL 0
+// #define PSO_NHOOD_GLOBAL 0
 
 // ring topology
 #define PSO_NHOOD_RING 1
 
 // Random neighborhood topology
 // **see http://clerc.maurice.free.fr/pso/random_topology.pdf**
-#define PSO_NHOOD_RANDOM 2
+// #define PSO_NHOOD_RANDOM 2
 
 
 
 // === INERTIA WEIGHT UPDATE FUNCTIONS ===
 #define PSO_W_CONST 0
 #define PSO_W_LIN_DEC 1
+
+
+#include "strategy/computational_geometry.h"
 
 // PSO SOLUTION -- Initialized by the user
 typedef struct {

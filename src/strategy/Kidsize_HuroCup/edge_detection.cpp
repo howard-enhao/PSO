@@ -66,9 +66,9 @@ void Edge_detection::strategymain()
         Canny(orign_img, edge, 50, 150, 3);
         // imshow("edge", edge);
         // waitKey(30);
-        cvtColor(edge, frame, cv::COLOR_GRAY2BGR);
-        edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
-        edgeimage_Publisher.publish(edgeimage_msg);
+        // cvtColor(edge, frame, cv::COLOR_GRAY2BGR);
+        // edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
+        // edgeimage_Publisher.publish(edgeimage_msg);
 
         // string edge_type =  type2str( edge.type() );
         // printf("Matrix: %s %dx%d \n\n\n\n", edge_type.c_str(), edge.cols, edge.rows );
@@ -116,7 +116,7 @@ void Edge_detection::strategymain()
 
             for(int j=0;j<ring_contours[i].size();j++) 
             {
-                edge_point.push_back(Point3i(ring_contours[i][j].x,ring_contours[i][j].y, 0));
+                edge_point.push_back(Point3i(ring_contours[i][j].x,ring_contours[i][j].y, 0));  //將shrink的邊緣點存入edge_point
                 printf("ring_(i,j) = (%d, %d) , (x,y) = (%d, %d)\n", i, j, ring_contours[i][j].x, ring_contours[i][j].y);
             
             }
@@ -143,13 +143,16 @@ void Edge_detection::strategymain()
             }
             cout<<endl<<endl<<endl;
         }
-        addWeighted(Shrink, 1, edge, 0.3, 0, Shrink);
+        addWeighted(Shrink, 1, edge, 0.3, 0, Shrink);  //合成edgeimg與shrinkimg
         // imshow("dist", dist);
         // imshow("ring", ring);
         imshow("Shrink", Shrink);  //縮小後的輪廓
         // imshow("Contours Image",imageContours); //輪廓
         // imshow("Point of Contours",Contours);   //向量contours内保存的所有輪廓點集
         waitKey(30);
+        cvtColor(Shrink, frame, cv::COLOR_GRAY2BGR);
+        edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
+        edgeimage_Publisher.publish(edgeimage_msg);
         for(int i = 0;i<100000000; i++);
     }
     checkImageSource = false;

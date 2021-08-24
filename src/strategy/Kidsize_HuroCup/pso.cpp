@@ -209,7 +209,7 @@ void inform_random(int *comm, double **pos_nb,
 pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate) {
     pso_settings_t *settings = (pso_settings_t *)malloc(sizeof(pso_settings_t));
     if (settings == NULL) { return NULL; }
-    int foot_area[4] = {-30,30,-40,40};
+    int foot_area[4] = {0};//{-30,30,-40,40};
     // set some default values
     settings->dim = dim;  //dimensionality(維度)
     settings->goal = 1e-5;
@@ -334,6 +334,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     float qq, ww;
     int ee;
     double Periodtime;
+    bool CCRisInObs = false;
 
     // int foot_area[4] = {-30,30,-40,40};
     int foot_area[4] = {0,0,0,0};
@@ -343,18 +344,18 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     // SELECT APPROPRIATE NHOOD UPDATE FUNCTION
     switch (settings->nhood_strategy)
         {
-        case PSO_NHOOD_GLOBAL:
-            // comm matrix not used
-            inform_fun = inform_global;
-            break;
+        // case PSO_NHOOD_GLOBAL:
+        //     // comm matrix not used
+        //     inform_fun = inform_global;
+        //     break;
         case PSO_NHOOD_RING:
             init_comm_ring(comm, settings);
             inform_fun = inform_ring;
             break;
-        case PSO_NHOOD_RANDOM:
-            init_comm_random(comm, settings);
-            inform_fun = inform_random;
-            break;
+        // case PSO_NHOOD_RANDOM:
+        //     init_comm_random(comm, settings);
+        //     inform_fun = inform_random;
+        //     break;
         default:
             // use global as the default
             inform_fun = inform_global;
@@ -412,6 +413,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                         vel[i][d] = 0;
                     }
                 }
+            // CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(70, 80, 0), 20);
+            
             
         }
         msg_accel.x.push_back(pos[i][0]);
