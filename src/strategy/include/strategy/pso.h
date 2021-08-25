@@ -9,24 +9,50 @@
 
 // === NEIGHBORHOOD SCHEMES ===
 
-// global best topology
-// #define PSO_NHOOD_GLOBAL 0
+//global best topology
+#define PSO_NHOOD_GLOBAL 0
 
 // ring topology
 #define PSO_NHOOD_RING 1
 
-// Random neighborhood topology
-// **see http://clerc.maurice.free.fr/pso/random_topology.pdf**
-// #define PSO_NHOOD_RANDOM 2
-
-
+//Random neighborhood topology
+//**see http://clerc.maurice.free.fr/pso/random_topology.pdf**
+#define PSO_NHOOD_RANDOM 2
 
 // === INERTIA WEIGHT UPDATE FUNCTIONS ===
 #define PSO_W_CONST 0
 #define PSO_W_LIN_DEC 1
 
+// generates a double between (0, 1)
+#define RNG_UNIFORM() (rand()/(double)RAND_MAX)
 
+// generate an int between 0 and s (exclusive)
+#define RNG_UNIFORM_INT(s) (rand()%s)
+
+#include <stdlib.h> // for rand() stuff
+#include <stdio.h> // for printf
+#include <time.h> // for time()
+#include <math.h> // for cos(), pow(), sqrt() etc.
+#include <float.h> // for DBL_MAX
+#include <string.h> // for mem*
+#include <vector>
+#include <iostream>
+#include <ros/ros.h>
+#include <ros/console.h>
+#include <std_msgs/Int32.h>
+#include <geometry_msgs/Vector3.h>
+#include "strategy/particle.h"
+#include "strategy/solution.h"
 #include "strategy/computational_geometry.h"
+
+using namespace std;
+
+
+
+
+
+
+
 
 // PSO SOLUTION -- Initialized by the user
 typedef struct {
@@ -37,7 +63,7 @@ typedef struct {
 } pso_result_t;
 
 
-
+class PSO;
 // OBJECTIVE FUNCTION TYPE
 typedef double (*pso_obj_fun_t)(double *, int, void *);
 
@@ -69,16 +95,56 @@ typedef struct {
 } pso_settings_t;
 
 pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate);
-void pso_settings_free(pso_settings_t *settings);
 
-// return the swarm size based on dimensionality
-int pso_calc_swarm_size(int dim);
 
-void position_limit(double *pos, double *vel, pso_settings_t *settings);
 
-// minimize the provided obj_fun using PSO with the specified settings
-// and store the result in *solution
-void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
+// function type for the different inform functions
+typedef void (PSO::*inform_fun_t)(int *comm, double **pos_nb,
+                             double **pos_b, double *fit_b,
+                             double *gbest, int improved,
+                             pso_settings_t *settings);
+
+// function type for the different inertia calculation functions
+typedef double (PSO::*inertia_fun_t)(int step, pso_settings_t *settings);
+
+class PSO
+{
+    public:
+        PSO()
+        {
+            
+        };
+        ~PSO(){};
+        // typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
+        int pso_calc_swarm_size(int dim);
+        double calc_inertia_lin_dec(int step, pso_settings_t *settings);
+        void pso_matrix_free(double **m, int size);
+        void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 	       pso_result_t *solution, pso_settings_t *settings, ros::NodeHandle nh);
+        void position_limit(double *pos, double *vel, pso_settings_t *settings);
+        void pso_settings_free(pso_settings_t *settings);
+        void inform_random(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t * settings);
+        void inform_ring(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t * settings);
+        void inform_global(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t *settings);
+        void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b, int improved, pso_settings_t * settings);
+        void init_comm_ring(int *comm, pso_settings_t * settings);
+        void init_comm_random(int *comm, pso_settings_t * settings);
+        // double pso_sphere(double *pos, int dim, void *params);
+        // pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate);
+        static double sum_objective_function;
+    // private:
+};
+
+class PSO_geometryInstance : public PSO
+{
+    public:
+        PSO_geometryInstance() : PSO(){}
+        ~PSO_geometryInstance(){}
+        static PSO_geometryInstance* getInstance();
+        static void deleteInstance();
+    private:
+        static PSO_geometryInstance* m_pInstance;
+
+};
 
 #endif // PSO_H_

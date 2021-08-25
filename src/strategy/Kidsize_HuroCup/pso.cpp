@@ -1,41 +1,58 @@
-#include <stdlib.h> // for rand() stuff
-#include <stdio.h> // for printf
-#include <time.h> // for time()
-#include <math.h> // for cos(), pow(), sqrt() etc.
-#include <float.h> // for DBL_MAX
-#include <string.h> // for mem*
-
-#include <ros/ros.h>
-#include <ros/console.h>
-
-#include <std_msgs/Int32.h>
-#include <geometry_msgs/Vector3.h>
-#include <iostream>
-#include <vector>
 #include "strategy/pso.h"
-#include "strategy/particle.h"
-#include "strategy/solution.h"
 
-using namespace std;
-// generates a double between (0, 1)
-#define RNG_UNIFORM() (rand()/(double)RAND_MAX)
+PSO_geometryInstance* PSO_geometryInstance::m_pInstance;
 
-// generate an int between 0 and s (exclusive)
-#define RNG_UNIFORM_INT(s) (rand()%s)
+PSO_geometryInstance* PSO_geometryInstance::getInstance()
+{
+    if(!m_pInstance)m_pInstance = new PSO_geometryInstance();
+    return m_pInstance;
+}
 
-// function type for the different inform functions
-typedef void (*inform_fun_t)(int *comm, double **pos_nb,
-                             double **pos_b, double *fit_b,
-                             double *gbest, int improved,
-                             pso_settings_t *settings);
+void PSO_geometryInstance::deleteInstance()
+{
+    if(m_pInstance)
+    {
+        delete m_pInstance;
+        m_pInstance = NULL;
+    }
+}
 
-// function type for the different inertia calculation functions
-typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
+// double PSO::pso_sphere(double *pos, int dim, void *params) {
 
+//     // double sum = 0;
+//     // int i;
+//     // for (i=0; i<dim; i++)
+//     //     sum += pow(pos[i]-obs_coordinate[i], 2);  // pow = pos[i]^2
+//     // return sum;
+//     float w1 = 0.1;
+//     float w2 = 0.01;
+//     float w3 = 0.001;
+//     float w4 = 0.0001;
+//     int theta = 0;
+//     float Tdsp = 0, Tssp = 0;
+//     // double PSO::sum_objective_function;
+//     double objective_function[4] = {0};
+//     objective_function[0] = w1*abs(160-pos[0]);  /*X direction*/
+//     objective_function[1] = w2*abs(120-pos[1]);  /*Y direction*/
+//     objective_function[2] = w3*abs(theta-theta);               /*Rotation*/
+//     objective_function[3] = w4*(Tdsp+Tssp);                    /*step period*/
+//     ROS_INFO("pos[0] = %f, pos[1] = %f", pos[0], pos[1]);
+//     // ROS_INFO("size = %d", sizeof(objective_function));
+    
+    
+//     for (int i=0; i<4; i++)
+//     {
+//         PSO::sum_objective_function += objective_function[i];
+//         // ROS_INFO("sum%d = %f", i,sum_objective_function);
+//     }
+
+//     ROS_INFO("sum = %f", PSO::sum_objective_function);
+//     return PSO::sum_objective_function;
+// }
 
 //==============================================================
 // calulate swarm size based on dimensionality
-int pso_calc_swarm_size(int dim) {
+int PSO::pso_calc_swarm_size(int dim) {
     int size = 10. + 2. * sqrt(dim);
     return (size > PSO_MAX_SIZE ? PSO_MAX_SIZE : size);
 }
@@ -45,7 +62,7 @@ int pso_calc_swarm_size(int dim) {
 //          INERTIA WEIGHT UPDATE STRATEGIES
 //==============================================================
 // calculate linearly decreasing inertia weight  //線性遞減慣性權重
-double calc_inertia_lin_dec(int step, pso_settings_t *settings) {
+double PSO::calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 
     // int dec_stage = 3 * settings->steps / 4;
     // if (step <= dec_stage)
@@ -67,7 +84,7 @@ double calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 //          NEIGHBORHOOD (COMM) MATRIX STRATEGIES
 //==============================================================
 // global neighborhood
-void inform_global(int *comm, double **pos_nb,
+void PSO::inform_global(int *comm, double **pos_nb,
 		   double **pos_b, double *fit_b,
 		   double *gbest, int improved,
 		   pso_settings_t *settings)
@@ -87,7 +104,7 @@ void inform_global(int *comm, double **pos_nb,
 // general inform function :: according to the connectivity
 // matrix COMM, it copies the best position (from pos_b) of the
 // informers of each particle to the pos_nb matrix
-void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
+void PSO::inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 	    int improved, pso_settings_t * settings)
 {
     int i, j;
@@ -117,7 +134,8 @@ void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 // =============
 
 // topology initialization :: this is a static (i.e. fixed) topology
-void init_comm_ring(int *comm, pso_settings_t * settings) {
+void PSO::init_comm_ring(int *comm, pso_settings_t * settings) 
+{
     int i;
     // reset array
     memset((void *)comm, 0, sizeof(int)*settings->size*settings->size);
@@ -150,7 +168,7 @@ void init_comm_ring(int *comm, pso_settings_t * settings) {
 
 
 
-void inform_ring(int *comm, double **pos_nb,
+void PSO::inform_ring(int *comm, double **pos_nb,
 		 double **pos_b, double *fit_b,
 		 double *gbest, int improved,
 		 pso_settings_t * settings)
@@ -164,7 +182,8 @@ void inform_ring(int *comm, double **pos_nb,
 // ============================
 // random neighborhood topology
 // ============================
-void init_comm_random(int *comm, pso_settings_t * settings) {
+void PSO::init_comm_random(int *comm, pso_settings_t * settings) 
+{
 
     int i, j, k;
     // reset array
@@ -186,7 +205,7 @@ void init_comm_random(int *comm, pso_settings_t * settings) {
 
 
 
-void inform_random(int *comm, double **pos_nb,
+void PSO::inform_random(int *comm, double **pos_nb,
 		   double **pos_b, double *fit_b,
 		   double *gbest, int improved,
 		   pso_settings_t * settings)
@@ -247,7 +266,7 @@ pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coord
 }
 
 // destroy PSO settings
-void pso_settings_free(pso_settings_t *settings) {
+void PSO::pso_settings_free(pso_settings_t *settings) {
     free(settings->range_lo);
     free(settings->range_hi);
     free(settings);
@@ -262,14 +281,14 @@ double **pso_matrix_new(int size, int dim) {
     return m;
 }
 
-void pso_matrix_free(double **m, int size) {
+void PSO::pso_matrix_free(double **m, int size) {
     for (int i=0; i<size; i++) {
         free(m[i]);
     }
     free(m);
 }
 
-void position_limit(double *pos, double *vel, pso_settings_t *settings) {
+void PSO::position_limit(double *pos, double *vel, pso_settings_t *settings) {
     // clamp position within bounds?
     // if (settings->clamp_pos) {
     //     if (pos < settings->range_lo-foot_area[d*2]) {
@@ -299,7 +318,9 @@ void position_limit(double *pos, double *vel, pso_settings_t *settings) {
 //==============================================================
 //                     PSO ALGORITHM
 //==============================================================
-void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
+// minimize the provided obj_fun using PSO with the specified settings
+// and store the result in *solution
+void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 	       pso_result_t *solution, pso_settings_t *settings, ros::NodeHandle nh)
 {
     struct timeval tstart, tend;
@@ -346,19 +367,19 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         {
         // case PSO_NHOOD_GLOBAL:
         //     // comm matrix not used
-        //     inform_fun = inform_global;
+        //     inform_fun = &PSO::inform_global;
         //     break;
         case PSO_NHOOD_RING:
             init_comm_ring(comm, settings);
-            inform_fun = inform_ring;
+            inform_fun = &PSO::inform_ring;
             break;
         // case PSO_NHOOD_RANDOM:
         //     init_comm_random(comm, settings);
-        //     inform_fun = inform_random;
+        //     inform_fun = &PSO::inform_random;
         //     break;
         default:
             // use global as the default
-            inform_fun = inform_global;
+            inform_fun = &PSO::inform_global;
             break;
         }
 
@@ -369,7 +390,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     //         /*     calc_inertia_fun = calc_inertia_const; */
     //         /*     break; */
     //     case PSO_W_LIN_DEC :
-            calc_inertia_fun = calc_inertia_lin_dec;
+            calc_inertia_fun = &PSO::calc_inertia_lin_dec;
     //         break;
     //     }
 
@@ -421,7 +442,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         msg_accel.y.push_back(pos[i][1]);
         // update particle fitness
         ROS_INFO("pos[%d][0] = %f, pos[%d][1] = %f", i, pos[i][0], i, pos[i][1]);
-        fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
+        fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params);
         ROS_INFO("fit[%d] = %f", i, fit[i]);
         fit_b[i] = fit[i]; // this is also the personal best
         // update gbest??
@@ -450,7 +471,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         // update inertia weight
         // do not bother with calling a calc_w_const function
         if (calc_inertia_fun != NULL) {
-            w = calc_inertia_fun(step, settings);  //更新慣性權重
+            w = (this->*calc_inertia_fun)(step, settings);  //更新慣性權重
         }
         ROS_INFO("rrr");
         // check optimization goal
@@ -468,8 +489,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             break;
         }
         // update pos_nb matrix (find best of neighborhood for all particles)
-        inform_fun(comm, (double **)pos_nb, (double **)pos_b,
-                   fit_b, solution->gbest, improved, settings);
+        (this->*inform_fun)(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest, improved, settings);
         // the value of improved was just used; reset it
         improved = 0;
         
@@ -518,7 +538,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             // ROS_INFO("gggerror = %f", solution->error);
             
             // update particle fitness
-            fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
+            fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params);
             ROS_INFO("i = %d, fit = %f, posx = %f, posy = %f", i, fit[i], msg_accel.x.back(), msg_accel.y.back());
             ROS_INFO("w = %f", w);
             // update personal best position?

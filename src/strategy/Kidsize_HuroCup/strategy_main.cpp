@@ -1,64 +1,6 @@
-// #include "strategy/strategy_main.h"
+#include "strategy/strategy_main.h"
 
-// int main(int argc, char** argv)
-// {
-// 	ros::init(argc, argv, "BBthrow");
-// 	ros::NodeHandle nh;
-// 	KidsizeStrategy KidsizeStrategy;
-    
-// 	ros::Rate loop_rate(30);
 
-//     // Load->initparameterpath();
-// 	while (nh.ok()) 
-// 	{
-// 		ros::spinOnce();
-// 		KidsizeStrategy.strategymain();
-// 		loop_rate.sleep();
-// 	}
-// 	return 0;
-// }
-#include <ros/ros.h>
-#include <ros/package.h>
-#include <vector>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h> // for printf
-#include "strategy/pso.h"
-
-#include <ros/console.h>
-
-#include <std_msgs/Int32.h>
-#include <geometry_msgs/Vector3.h>
-#include "strategy/obstacle.h"
-#include "strategy/particle.h"
-#include "strategy/step_space.h"
-#include<iostream>
-using namespace std;
-bool get_obs = false;
-bool on_floor = false;
-bool init = true;
-float obs_coordinate[2] = {0};
-float free_limit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/
-float freelimit[4] = {80, 160, 90, 230};
-float *free_coordinate[2] = {0}; /**free_coordinate = [x, y]*/
-
-    /*foot width = 60 , foot hight = 80*/
-    int foot_width = 60;
-    int foot_height = 80;
-    int foot_widthmin = 50;
-    int foot_heightmin = 70;
-
-int obs_side = 0;
-enum{
-		/*obs_side*/
-        right_side,
-		left_side,
-        top_side,
-        bottom_side,
-        centor_side
-		
-	};
 //==============================================================
 //                  BENCHMARK FUNCTIONS
 //==============================================================
@@ -98,34 +40,7 @@ double pso_sphere(double *pos, int dim, void *params) {
 
 
 
-double pso_rosenbrock(double *vec, int dim, void *params) {
-
-    double sum = 0;
-    int i;
-    for (i=0; i<dim-1; i++)
-        sum += 100 * pow((vec[i+1] - pow(vec[i], 2)), 2) +	\
-            pow((1 - vec[i]), 2);
-
-    return sum;
-
-}
-
-
-double pso_griewank(double *vec, int dim, void *params) {
-
-    double sum = 0.;
-    double prod = 1.;
-    int i;
-    for (i=0; i<dim;i++) {
-        sum += pow(vec[i], 2);
-        prod *= cos(vec[i] / sqrt(i+1));
-    }
-
-    return sum / 4000 - prod + 1;
-
-}
-
-void Obstaclefreearea(const strategy::obstacle &msg)
+void KidsizeStrategy::Obstaclefreearea(const strategy::obstacle &msg)
 {
     get_obs = true;
     float *free_coordinate = (float *)calloc(2, sizeof(float));
@@ -210,41 +125,7 @@ void Obstaclefreearea(const strategy::obstacle &msg)
         ROS_INFO("free_min,max= %f, %f, %f, %f", free_limit[0], free_limit[1], free_limit[2], free_limit[3]);
         ROS_INFO("free_x,y = %f, %f", *(free_coordinate), *(free_coordinate+1));
 
-        // if(free_limit[0]-obstacle_xmin>foot_width)
-        // {
-        //     free_limit[0] = abs(free_limit[0]-obstacle_xmin);
-        //     on_floor = true;
-        // }
-        // else if(free_limit[1]-obstacle_xmax>foot_width)
-        // {
-        //     free_limit[1] = abs(free_limit[1]-obstacle_xmax);
-        //     on_floor = true;
-        // }
-        // else if(free_limit[2]-obstacle_ymin>foot_height)
-        // {
-        //     free_limit[2] = abs(free_limit[2]-obstacle_ymin);
-        //     on_floor = true;
-        // }
-        // else if(free_limit[3]-obstacle_ymax>foot_height)
-        // {
-        //     free_limit[3] = abs(free_limit[3]-obstacle_ymax);
-        //     on_floor = true;
-        // }
-        // else if(obstacle_width>foot_widthmin && obstacle_height>foot_heightmin)
-        // {
-        //     free_limit[0] = obstacle_xmin;
-        //     free_limit[1] = obstacle_xmax;
-        //     free_limit[2] = obstacle_ymin;
-        //     free_limit[3] = obstacle_ymax;
-        //     on_floor = false;
-        // }
-        // else  /*no place can walk*/
-        // {
-        //     free_limit[0] = 0;
-        //     free_limit[1] = 0;
-        //     free_limit[2] = 0;
-        //     free_limit[3] = 0;
-        // }
+        
         
         sleep(1);
     }
@@ -264,16 +145,27 @@ void Obstaclefreearea(const strategy::obstacle &msg)
 int main(int argc, char **argv) {
     ros::init(argc, argv, "BBthrow");
 	ros::NodeHandle nh;
+	KidsizeStrategy KidsizeStrategy(nh);
+
 	
-	ros::Subscriber sub = nh.subscribe("/Obstaclefreearea_Topic", 100, Obstaclefreearea);
-    ros::Publisher pub_stepspace = nh.advertise< strategy::step_space >( "/stepspace", 1000 );
-    strategy::step_space freecoordinate;
     ros::spinOnce();
     ros::Rate loop_rate(30);
 
     while (nh.ok())
     {
-        if(get_obs)
+        KidsizeStrategy.strategymain(nh);
+        ros::spinOnce();
+        loop_rate.sleep();
+        
+    
+    }
+    return 0;
+
+}
+
+void KidsizeStrategy::strategymain(ros::NodeHandle nh)
+{
+    if(get_obs)
         {
             if(init)
             {
@@ -312,21 +204,15 @@ int main(int argc, char **argv) {
             sleep(2);
 
             // run optimization algorithm
-            pso_solve(obj_fun, NULL, &solution, settings, nh);
+            pso_fun->pso_solve(obj_fun, NULL, &solution, settings, nh);
 
             // free the gbest buffer
             free(solution.gbest);
 
             // free the settings
-            pso_settings_free(settings);
+            pso_fun->pso_settings_free(settings);
             get_obs = false;
-            break;
+            // break;
+            ros::shutdown();
         }
-        ros::spinOnce();
-        loop_rate.sleep();
-        
-    
-    }
-    return 0;
-
 }
