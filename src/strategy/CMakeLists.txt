@@ -67,18 +67,21 @@ include_directories(
 #add_dependencies(pso_libs ${catkin_EXPORTED_TARGETS})
 #target_link_libraries(pso_libs ${catkin_LIBRARIES})
 
-add_executable(BBthrow 
-	Kidsize_HuroCup/strategy_main.cpp 
-	Kidsize_HuroCup/basketballinfo.cpp  
-	Kidsize_HuroCup/loadparameter.cpp 
-	Kidsize_HuroCup/pso.cpp)
-add_dependencies(BBthrow ${catkin_EXPORTED_TARGETS})
-target_link_libraries(BBthrow ${catkin_LIBRARIES} ${TKU_LIBRARIES} ${ROSCOMMUNICATION_LIBRARIES} ${OpenCV_LIBRARIES})
-
 add_executable(edge Kidsize_HuroCup/computational_geometry.cpp
 					Kidsize_HuroCup/edge_detection.cpp)
 add_dependencies(edge ${catkin_EXPORTED_TARGETS})
 target_link_libraries(edge ${catkin_LIBRARIES} ${TKU_LIBRARIES} ${ROSCOMMUNICATION_LIBRARIES} ${OpenCV_LIBRARIES} ${PSO_LIBRARIES})
+
+add_executable(BBthrow 
+	Kidsize_HuroCup/strategy_main.cpp 
+	Kidsize_HuroCup/basketballinfo.cpp  
+	Kidsize_HuroCup/loadparameter.cpp 
+	Kidsize_HuroCup/pso.cpp
+	Kidsize_HuroCup/computational_geometry.cpp)
+add_dependencies(BBthrow ${catkin_EXPORTED_TARGETS})
+target_link_libraries(BBthrow ${catkin_LIBRARIES} ${TKU_LIBRARIES} ${ROSCOMMUNICATION_LIBRARIES} ${OpenCV_LIBRARIES})
+
+
 
 
 

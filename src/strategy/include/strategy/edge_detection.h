@@ -26,6 +26,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include "strategy/pso.h"
 #include "strategy/computational_geometry.h"
+#include <geometry_msgs/Polygon.h>
 using namespace std;
 using namespace cv;
 
@@ -41,10 +42,12 @@ class Edge_detection
             image_transport::ImageTransport it(nh);
             edgeimage_Publisher = it.advertise("edge_image", 1);
             Computational_geometry = Computational_geometryInstance::getInstance();
+            edgepoint_pub = nh.advertise<geometry_msgs::Polygon>("/edgepoint_Topic", 1);
         };
         ~Edge_detection(){};
 
         ros::Subscriber Imagesource_subscriber;
+        ros::Publisher edgepoint_pub;
         StrategyInfoInstance *strategy_info;
         Computational_geometryInstance *Computational_geometry;
         image_transport::Publisher edgeimage_Publisher;

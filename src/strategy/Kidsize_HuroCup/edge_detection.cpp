@@ -102,7 +102,8 @@ void Edge_detection::strategymain()
             bool PointWithinObs = false;
             int InObs = -1;
             bool CCRisInObs = false;
-            
+            geometry_msgs::Point32 point;
+            geometry_msgs::Polygon polygon;
             // contours[i]代表的是第i個輪廓，contours[i].size()代表的是第i個輪廓上所有的像素點數
             // for(int j=0;j<contours[i].size();j++) 
             // {
@@ -118,9 +119,15 @@ void Edge_detection::strategymain()
             {
                 edge_point.push_back(Point3i(ring_contours[i][j].x,ring_contours[i][j].y, 0));  //將shrink的邊緣點存入edge_point
                 printf("ring_(i,j) = (%d, %d) , (x,y) = (%d, %d)\n", i, j, ring_contours[i][j].x, ring_contours[i][j].y);
-            
+                point.x = ring_contours[i][j].x;
+                point.y = ring_contours[i][j].y;
+                point.z = 0;
+                polygon.points.push_back(point);
+                // printf("%f, %f, %f\n", point.x, point.y, point.z);
             }
-        
+            // printf("size = %d \n", polygon.points.size());
+            edgepoint_pub.publish(polygon);
+            polygon.points.clear();
             // 輸出hierarchy向量内容
             char ch[256];
             sprintf(ch,"%d",i);
@@ -128,7 +135,7 @@ void Edge_detection::strategymain()
             cout<<"向量hierarchy的第" <<str<<" 個元素内容為："<<ring_hierarchy[i]<<endl<<endl;
             // printf("point  %d\n", Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0)));
             // printf("point = %d\n", Computational_geometry->isCircleInPolygon(edge_point, Point3i(200, 120, 0), 5));
-            CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(70, 80, 0), 20);
+            //////CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(70, 80, 0), 20);
             // PointWithinObs = Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0));
             edge_point.clear();
 

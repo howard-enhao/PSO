@@ -27,7 +27,6 @@ double pso_sphere(double *pos, int dim, void *params) {
     ROS_INFO("pos[0] = %f, pos[1] = %f", pos[0], pos[1]);
     // ROS_INFO("size = %d", sizeof(objective_function));
     
-    
     for (int i=0; i<4; i++)
     {
         sum_objective_function += objective_function[i];
@@ -37,8 +36,6 @@ double pso_sphere(double *pos, int dim, void *params) {
     ROS_INFO("sum = %f", sum_objective_function);
     return sum_objective_function;
 }
-
-
 
 void KidsizeStrategy::Obstaclefreearea(const strategy::obstacle &msg)
 {
@@ -125,20 +122,16 @@ void KidsizeStrategy::Obstaclefreearea(const strategy::obstacle &msg)
         ROS_INFO("free_min,max= %f, %f, %f, %f", free_limit[0], free_limit[1], free_limit[2], free_limit[3]);
         ROS_INFO("free_x,y = %f, %f", *(free_coordinate), *(free_coordinate+1));
 
-        
-        
-        sleep(1);
+        // sleep(1);
     }
 
     // memmove(*obs_coordinate, *(free_coordinate), sizeof(float) * 2);
     free(free_coordinate);
     
-    
     obs_coordinate[0] = *(free_coordinate);
     obs_coordinate[1] = *(free_coordinate+1);
-
+    sleep(1);
 }
-
 
 //==============================================================
 
@@ -166,53 +159,51 @@ int main(int argc, char **argv) {
 void KidsizeStrategy::strategymain(ros::NodeHandle nh)
 {
     if(get_obs)
+    {
+        if(init)
         {
-            if(init)
-            {
-                for(int i = 0; i<4; i++)
-                    freecoordinate.step_space.push_back(freelimit[i]);
-                pub_stepspace.publish( freecoordinate );
-                freecoordinate.step_space.clear();
-                init = false;
-            }
+            for(int i = 0; i<4; i++)
+                freecoordinate.step_space.push_back(freelimit[i]);
+            pub_stepspace.publish( freecoordinate );
+            freecoordinate.step_space.clear();
+            init = false;
+        }
 
+        pso_settings_t *settings = NULL;
+        pso_obj_fun_t obj_fun = NULL;
+        // handle the default case (no argument given)
+        if (obj_fun == NULL || settings == NULL) {
+            obj_fun = pso_sphere;
+            settings = pso_settings_new(2, &freelimit[0], &obs_coordinate[0]);
+            // settings = pso_settings_new(2, -100, 100);
+            printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n", settings->dim, settings->size);
+        }
 
-            pso_settings_t *settings = NULL;
-            pso_obj_fun_t obj_fun = NULL;
+        // set some general PSO settings
+        settings->goal = 1e-5;
+        // settings->size = 30;
+        settings->nhood_strategy = PSO_NHOOD_RING;
+        settings->nhood_size = 10;
+        settings->w_strategy = PSO_W_LIN_DEC;
 
-            // handle the default case (no argument given)
-            if (obj_fun == NULL || settings == NULL) {
-                obj_fun = pso_sphere;
-                settings = pso_settings_new(2, &freelimit[0], &obs_coordinate[0]);
-                // settings = pso_settings_new(2, -100, 100);
-                printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n", settings->dim, settings->size);
-            }
-
-            // set some general PSO settings
-            settings->goal = 1e-5;
-            // settings->size = 30;
-            settings->nhood_strategy = PSO_NHOOD_RING;
-            settings->nhood_size = 10;
-            settings->w_strategy = PSO_W_LIN_DEC;
-
-            // initialize GBEST solution
-            pso_result_t solution;
-            // allocate memory for the best position buffer
+        // initialize GBEST solution
+        pso_result_t solution;
+        // allocate memory for the best position buffer
             solution.gbest = (double *)malloc(settings->dim * sizeof(double));
 
-            printf("dim=%d, swarm size=%d)\n", settings->dim, settings->size);
-            sleep(2);
+        printf("dim=%d, swarm size=%d)\n", settings->dim, settings->size);
+        sleep(2);
 
-            // run optimization algorithm
-            pso_fun->pso_solve(obj_fun, NULL, &solution, settings, nh);
+        // run optimization algorithm
+        pso_fun->pso_solve(obj_fun, NULL, &solution, settings, nh);
 
-            // free the gbest buffer
-            free(solution.gbest);
+        // free the gbest buffer
+        free(solution.gbest);
 
-            // free the settings
-            pso_fun->pso_settings_free(settings);
-            get_obs = false;
-            // break;
-            ros::shutdown();
-        }
+        // free the settings
+        pso_fun->pso_settings_free(settings);
+        get_obs = false;
+        // break;
+        ros::shutdown();
+    }
 }

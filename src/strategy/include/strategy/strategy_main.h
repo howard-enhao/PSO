@@ -23,7 +23,6 @@ using namespace std;
 // typedef double (*pso_obj_fun_t)(double *pos, int dim, void *params);
 class KidsizeStrategy
 {
-
 	public:
 		KidsizeStrategy(ros::NodeHandle &nh) 
 		{
@@ -51,14 +50,14 @@ class KidsizeStrategy
 		bool init = true;
 		float obs_coordinate[2] = {0};
 		float free_limit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/
-		float freelimit[4] = {80, 160, 90, 230};
+		float freelimit[4] = {30, 160, 30, 230};
 		float *free_coordinate[2] = {0}; /**free_coordinate = [x, y]*/
 
-			/*foot width = 60 , foot hight = 80*/
-			int foot_width = 60;
-			int foot_height = 80;
-			int foot_widthmin = 50;
-			int foot_heightmin = 70;
+		/*foot width = 60 , foot hight = 80*/
+		int foot_width = 60;
+		int foot_height = 80;
+		int foot_widthmin = 50;
+		int foot_heightmin = 70;
 
 		int obs_side = 0;
 		enum
@@ -68,7 +67,6 @@ class KidsizeStrategy
 			top_side,
 			bottom_side,
 			centor_side
-			
 		};
 
 };

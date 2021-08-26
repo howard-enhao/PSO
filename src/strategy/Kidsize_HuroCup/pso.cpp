@@ -17,6 +17,20 @@ void PSO_geometryInstance::deleteInstance()
     }
 }
 
+PSO::PSO()
+{
+    initialize();
+}
+PSO::~PSO()
+{
+
+}
+
+void PSO::initialize()
+{
+    edgepoint_subscriber = nh.subscribe("/edgepoint_Topic", 10, &PSO::get_edgepoint, this);
+    Computational_geometry = Computational_geometryInstance::getInstance();
+}
 // double PSO::pso_sphere(double *pos, int dim, void *params) {
 
 //     // double sum = 0;
@@ -50,13 +64,23 @@ void PSO_geometryInstance::deleteInstance()
 //     return PSO::sum_objective_function;
 // }
 
+void PSO::get_edgepoint(const geometry_msgs::Polygon &msg)
+{
+    // cout<<"size="<<msg.points.size()<<endl;
+    // printf("size = %lu\n", msg.points.size());
+    // sleep(3);
+    for(int i = 0; i<msg.points.size(); i++)
+    {
+        // cout<<"i = "<<i<<"\nmsg = \n"<<msg.points[i]<<endl;
+        edge_point.push_back(Point3i(msg.points[i].x, msg.points[i].y, msg.points[i].z));
+    }
+}
 //==============================================================
 // calulate swarm size based on dimensionality
 int PSO::pso_calc_swarm_size(int dim) {
     int size = 10. + 2. * sqrt(dim);
     return (size > PSO_MAX_SIZE ? PSO_MAX_SIZE : size);
 }
-
 
 //==============================================================
 //          INERTIA WEIGHT UPDATE STRATEGIES
@@ -78,8 +102,6 @@ double PSO::calc_inertia_lin_dec(int step, pso_settings_t *settings) {
     //     return settings->w_min;
 }
 
-
-
 //==============================================================
 //          NEIGHBORHOOD (COMM) MATRIX STRATEGIES
 //==============================================================
@@ -98,7 +120,6 @@ void PSO::inform_global(int *comm, double **pos_nb,
                 sizeof(double) * settings->dim);
 
 }
-
 
 // ===============================================================
 // general inform function :: according to the connectivity
@@ -125,9 +146,6 @@ void PSO::inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
                 sizeof(double) * settings->dim);
     }
 }
-
-
-
 
 // =============
 // ring topology
@@ -165,9 +183,6 @@ void PSO::init_comm_ring(int *comm, pso_settings_t * settings)
 
 }
 
-
-
-
 void PSO::inform_ring(int *comm, double **pos_nb,
 		 double **pos_b, double *fit_b,
 		 double *gbest, int improved,
@@ -184,7 +199,6 @@ void PSO::inform_ring(int *comm, double **pos_nb,
 // ============================
 void PSO::init_comm_random(int *comm, pso_settings_t * settings) 
 {
-
     int i, j, k;
     // reset array
     memset((void *)comm, 0, sizeof(int)*settings->size*settings->size);
@@ -203,8 +217,6 @@ void PSO::init_comm_random(int *comm, pso_settings_t * settings)
     }
 }
 
-
-
 void PSO::inform_random(int *comm, double **pos_nb,
 		   double **pos_b, double *fit_b,
 		   double *gbest, int improved,
@@ -218,9 +230,6 @@ void PSO::inform_random(int *comm, double **pos_nb,
     inform(comm, pos_nb, pos_b, fit_b, improved, settings);
 
 }
-
-
-
 
 //==============================================================
 // create pso settings
@@ -271,7 +280,6 @@ void PSO::pso_settings_free(pso_settings_t *settings) {
     free(settings->range_hi);
     free(settings);
 }
-
 
 double **pso_matrix_new(int size, int dim) {
     double **m = (double **)malloc(size * sizeof(double *));
@@ -412,32 +420,33 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             // initialize velocity
             vel[i][d] = (a-b) / 2.;
             if (settings->clamp_pos) {
-                    if (pos[i][d] < settings->range_lo[d]-foot_area[d*2]) {
-                        pos[i][d] = settings->range_lo[d]-foot_area[d*2];
-                        vel[i][d] = 0;
-                    } else if (pos[i][d] > settings->range_hi[d]-foot_area[d*2+1]) {
-                        pos[i][d] = settings->range_hi[d]-foot_area[d*2+1];
-                        vel[i][d] = 0;
-                    }
-                } else {
-                    // enforce periodic boundary conditions
-                    if (pos[i][d] < settings->range_lo[d]) {
-
-                        pos[i][d] = settings->range_hi[d] - fmod(settings->range_lo[d] - pos[i][d],
-                                                                 settings->range_hi[d] - settings->range_lo[d]);
-                        vel[i][d] = 0;
-
-                    } else if (pos[i][d] > settings->range_hi[d]) {
-
-                        pos[i][d] = settings->range_lo[d] + fmod(pos[i][d] - settings->range_hi[d],
-                                                                 settings->range_hi[d] - settings->range_lo[d]);
-                        vel[i][d] = 0;
-                    }
+                if (pos[i][d] < settings->range_lo[d]-foot_area[d*2]) {
+                    pos[i][d] = settings->range_lo[d]-foot_area[d*2];
+                    vel[i][d] = 0;
+                } else if (pos[i][d] > settings->range_hi[d]-foot_area[d*2+1]) {
+                    pos[i][d] = settings->range_hi[d]-foot_area[d*2+1];
+                    vel[i][d] = 0;
                 }
-            // CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(70, 80, 0), 20);
-            
+            } else {
+                // enforce periodic boundary conditions
+                if (pos[i][d] < settings->range_lo[d]) {
+
+                    pos[i][d] = settings->range_hi[d] - fmod(settings->range_lo[d] - pos[i][d],
+                                                             settings->range_hi[d] - settings->range_lo[d]);
+                    vel[i][d] = 0;
+
+                } else if (pos[i][d] > settings->range_hi[d]) {
+
+                    pos[i][d] = settings->range_lo[d] + fmod(pos[i][d] - settings->range_hi[d],
+                                                             settings->range_hi[d] - settings->range_lo[d]);
+                    vel[i][d] = 0;
+                }
+            }
             
         }
+        bool posInObs = false;
+        posInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(pos[i][0], pos[i][1], 0), 5);
+        
         msg_accel.x.push_back(pos[i][0]);
         msg_accel.y.push_back(pos[i][1]);
         // update particle fitness

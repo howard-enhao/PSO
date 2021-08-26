@@ -1,5 +1,5 @@
-#ifndef PSO_H_
-#define PSO_H_
+#ifndef PSO_H
+#define PSO_H
 
 
 // CONSTANTS
@@ -39,20 +39,15 @@
 #include <iostream>
 #include <ros/ros.h>
 #include <ros/console.h>
+#include "strategy/computational_geometry.h"
 #include <std_msgs/Int32.h>
 #include <geometry_msgs/Vector3.h>
+
 #include "strategy/particle.h"
 #include "strategy/solution.h"
-#include "strategy/computational_geometry.h"
+#include <geometry_msgs/Polygon.h>
 
 using namespace std;
-
-
-
-
-
-
-
 
 // PSO SOLUTION -- Initialized by the user
 typedef struct {
@@ -96,8 +91,6 @@ typedef struct {
 
 pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate);
 
-
-
 // function type for the different inform functions
 typedef void (PSO::*inform_fun_t)(int *comm, double **pos_nb,
                              double **pos_b, double *fit_b,
@@ -110,11 +103,10 @@ typedef double (PSO::*inertia_fun_t)(int step, pso_settings_t *settings);
 class PSO
 {
     public:
-        PSO()
-        {
-            
-        };
-        ~PSO(){};
+        PSO();
+        ~PSO();
+        void initialize();
+        
         // typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
         int pso_calc_swarm_size(int dim);
         double calc_inertia_lin_dec(int step, pso_settings_t *settings);
@@ -129,10 +121,16 @@ class PSO
         void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b, int improved, pso_settings_t * settings);
         void init_comm_ring(int *comm, pso_settings_t * settings);
         void init_comm_random(int *comm, pso_settings_t * settings);
+        void get_edgepoint(const geometry_msgs::Polygon &msg);
         // double pso_sphere(double *pos, int dim, void *params);
         // pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate);
         static double sum_objective_function;
-    // private:
+        vector<Point3i> edge_point;
+    private:
+        ros::NodeHandle nh;
+		ros::Subscriber edgepoint_subscriber;
+    protected:
+        Computational_geometryInstance *Computational_geometry;
 };
 
 class PSO_geometryInstance : public PSO
@@ -147,4 +145,4 @@ class PSO_geometryInstance : public PSO
 
 };
 
-#endif // PSO_H_
+#endif // PSO_H
