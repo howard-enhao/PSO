@@ -15,6 +15,7 @@
 #include "strategy/obstacle.h"
 #include "strategy/particle.h"
 #include "strategy/step_space.h"
+#include "strategy/ReachableRegion.h"
 #include "strategy/pso.h"
 
 using namespace std;
@@ -29,7 +30,7 @@ class KidsizeStrategy
 			pso_fun = PSO_geometryInstance::getInstance();
 			sub = nh.subscribe("/Obstaclefreearea_Topic", 100, &KidsizeStrategy::Obstaclefreearea, this);
 			pub_stepspace = nh.advertise< strategy::step_space >( "/stepspace", 1000 );
-		
+			Reachable_region_sub = nh.subscribe("/ReachableRegion_Topic", 10, &KidsizeStrategy::Reachable_Region, this);
 		};
 		~KidsizeStrategy()
 		{
@@ -39,8 +40,10 @@ class KidsizeStrategy
 		PSO_geometryInstance *pso_fun;
 		ros::Publisher pub_stepspace;
 		ros::Subscriber sub;
+		ros::Subscriber Reachable_region_sub;
 		void strategymain(ros::NodeHandle nh);
 		void Obstaclefreearea(const strategy::obstacle &msg);
+		void Reachable_Region(const strategy::ReachableRegion &msg);
 		// double pso_sphere(double *pos, int dim, void *params);
 		strategy::step_space freecoordinate;
 		struct timeval tstart, tend;
@@ -50,7 +53,7 @@ class KidsizeStrategy
 		bool init = true;
 		float obs_coordinate[2] = {0};
 		float free_limit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/
-		float freelimit[4] = {30, 160, 30, 230};
+		float freelimit[4] = {0};
 		float *free_coordinate[2] = {0}; /**free_coordinate = [x, y]*/
 
 		/*foot width = 60 , foot hight = 80*/

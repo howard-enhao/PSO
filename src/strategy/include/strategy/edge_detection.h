@@ -27,6 +27,9 @@
 #include "strategy/pso.h"
 #include "strategy/computational_geometry.h"
 #include <geometry_msgs/Polygon.h>
+#include "strategy/EdgePointArray.h"
+#include "strategy/EdgePointList.h"
+#include "strategy/ReachableRegion.h"
 using namespace std;
 using namespace cv;
 
@@ -42,16 +45,19 @@ class Edge_detection
             image_transport::ImageTransport it(nh);
             edgeimage_Publisher = it.advertise("edge_image", 1);
             Computational_geometry = Computational_geometryInstance::getInstance();
-            edgepoint_pub = nh.advertise<geometry_msgs::Polygon>("/edgepoint_Topic", 1);
+            edgepoint_pub = nh.advertise<strategy::EdgePointList>("/edgepoint_Topic", 1);
+            Reachable_region_pub = nh.advertise<strategy::ReachableRegion>("/ReachableRegion_Topic", 1);
         };
         ~Edge_detection(){};
 
         ros::Subscriber Imagesource_subscriber;
         ros::Publisher edgepoint_pub;
+        ros::Publisher Reachable_region_pub;
         StrategyInfoInstance *strategy_info;
         Computational_geometryInstance *Computational_geometry;
         image_transport::Publisher edgeimage_Publisher;
         sensor_msgs::ImagePtr edgeimage_msg;
+        strategy::ReachableRegion reachable_region;
         void strategymain();
         void Catch_image(const sensor_msgs::ImageConstPtr& msg);
         Mat edge;

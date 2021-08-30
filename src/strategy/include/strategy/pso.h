@@ -46,6 +46,18 @@
 #include "strategy/particle.h"
 #include "strategy/solution.h"
 #include <geometry_msgs/Polygon.h>
+#include "strategy/EdgePointList.h"
+
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <cv_bridge/cv_bridge.h>
+using namespace cv;
 
 using namespace std;
 
@@ -121,10 +133,12 @@ class PSO
         void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b, int improved, pso_settings_t * settings);
         void init_comm_ring(int *comm, pso_settings_t * settings);
         void init_comm_random(int *comm, pso_settings_t * settings);
-        void get_edgepoint(const geometry_msgs::Polygon &msg);
+        void get_edgepoint(const strategy::EdgePointList &msg);
+        void show_image(const vector<Point3i>& c,  int radius, bool* InRegion, int step);
         // double pso_sphere(double *pos, int dim, void *params);
         // pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate);
         static double sum_objective_function;
+        vector<vector<Point3i>> edgepoint_list;
         vector<Point3i> edge_point;
     private:
         ros::NodeHandle nh;

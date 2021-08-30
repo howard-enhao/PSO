@@ -64,16 +64,57 @@ void PSO::initialize()
 //     return PSO::sum_objective_function;
 // }
 
-void PSO::get_edgepoint(const geometry_msgs::Polygon &msg)
+void PSO::get_edgepoint(const strategy::EdgePointList &msg)
 {
     // cout<<"size="<<msg.points.size()<<endl;
     // printf("size = %lu\n", msg.points.size());
     // sleep(3);
-    for(int i = 0; i<msg.points.size(); i++)
+    // for(int i = 0; i<msg.points.size(); i++)
+    // {
+    //     // cout<<"i = "<<i<<"\nmsg = \n"<<msg.points[i]<<endl;
+    //     edge_point.push_back(Point3i(msg.points[i].x, msg.points[i].y, msg.points[i].z));
+    // }
+    edgepoint_list.clear();
+    for(int i = 0; i<msg.Edgepointlist.size(); i++)
     {
-        // cout<<"i = "<<i<<"\nmsg = \n"<<msg.points[i]<<endl;
-        edge_point.push_back(Point3i(msg.points[i].x, msg.points[i].y, msg.points[i].z));
+        
+        for(int j = 0; j<msg.Edgepointlist[i].points.size(); j++)
+        {
+            // cout<<"i = "<<i<<" j = "<<j<<"\nmsg = \n"<<msg.Edgepointlist[i].points[j]<<endl;
+            edge_point.push_back(Point3i(msg.Edgepointlist[i].points[j].x, msg.Edgepointlist[i].points[j].y, msg.Edgepointlist[i].points[j].z));
+            // cout<<"point"<<edge_point<<endl;
+        }
+        edgepoint_list.push_back(edge_point);
+        edge_point.clear();
+        // cout<<"edge = "<<edgepoint_list<<endl;
     }
+    // cout<<"size = "<<edgepoint_list.size()<<endl;
+    
+}
+
+void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int step)
+{
+    Mat img = imread("/home/ching/git/finalimage.png");
+    Mat Contours=Mat::zeros(img.size(),CV_8UC3);
+    Mat final_img;
+    for(int i = 0; i < c.size(); ++i)
+    {
+        Contours.at<Vec3b>(Point(c[i].x, c[i].y))[0] = 255;
+        Contours.at<Vec3b>(Point(c[i].x, c[i].y))[1] = 255;
+        Contours.at<Vec3b>(Point(c[i].x, c[i].y))[2] = 0;
+        if(InRegion[i])
+            circle(Contours, Point(c[i].x, c[i].y), radius, Scalar(0,255,0));
+    }
+
+    addWeighted(Contours, 1, img, 1, 0, final_img);
+    imshow("img", final_img);
+    char path[50] = "/home/ching/git/test_img/final_";
+    string temp_str = to_string(step);
+    char const* step_num= temp_str.c_str();
+    strcat(path, step_num);
+    strcat(path, ".png");
+    imwrite(path, final_img);
+    waitKey(1);
 }
 //==============================================================
 // calulate swarm size based on dimensionality
@@ -331,6 +372,8 @@ void PSO::position_limit(double *pos, double *vel, pso_settings_t *settings) {
 void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 	       pso_result_t *solution, pso_settings_t *settings, ros::NodeHandle nh)
 {
+    namedWindow("img");
+    waitKey(3000);
     struct timeval tstart, tend;
     gettimeofday(&tstart, NULL);
     ros::Publisher pub_accel = nh.advertise< strategy::particle >( "accel", 1000 );
@@ -356,7 +399,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     double a, b; // for matrix initialization
     double rho1, rho2; // random numbers (coefficients)
     // initialize omega using standard value
-    double w = 0.9;
+    double w = 1;//0.9;
     inform_fun_t inform_fun = NULL; // neighborhood update function
     inertia_fun_t calc_inertia_fun = NULL; // inertia weight update function
 
@@ -364,7 +407,8 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     int ee;
     double Periodtime;
     bool CCRisInObs = false;
-
+    bool *posInObs = (bool *)malloc(settings->size * sizeof(bool));
+    vector<Point3i> cpoint;
     // int foot_area[4] = {-30,30,-40,40};
     int foot_area[4] = {0,0,0,0};
     // initialize random seed
@@ -444,9 +488,8 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             }
             
         }
-        bool posInObs = false;
-        posInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(pos[i][0], pos[i][1], 0), 5);
         
+        //for(int i = 0;i<10000000; i++);
         msg_accel.x.push_back(pos[i][0]);
         msg_accel.y.push_back(pos[i][1]);
         // update particle fitness
@@ -463,7 +506,20 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                     sizeof(double) * settings->dim);
         }
         ROS_INFO("no.%d error = %f", i, solution->error);
+        for(int j = 0; j<edgepoint_list.size(); j++)
+        {
+            if(!posInObs[i])
+            {
+                posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), 10);
+                if(posInObs[i])
+                    break;
+            }
+        }
+        cpoint.push_back(Point3i(pos[i][0], pos[i][1], 0));
     }
+    show_image(cpoint, 10, &posInObs[0], 0);
+    memset(posInObs, 0, settings->size * sizeof(bool));
+    cpoint.clear();
     msg_accel.cnt=settings->size;
     pub_accel.publish( msg_accel );
     msg_accel.x.clear();
@@ -472,6 +528,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     solution_msg.y = solution->gbest[1];
     solution_pub.publish(solution_msg);
     for(int i = 0;i<100000000; i++);
+    // sleep(3);
     
     // RUN ALGORITHM
     for (step=0; step<settings->steps; step++) {
@@ -480,7 +537,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         // update inertia weight
         // do not bother with calling a calc_w_const function
         if (calc_inertia_fun != NULL) {
-            w = (this->*calc_inertia_fun)(step, settings);  //更新慣性權重
+            w = w*0.9;(this->*calc_inertia_fun)(step, settings);  //更新慣性權重
         }
         ROS_INFO("rrr");
         // check optimization goal
@@ -544,8 +601,9 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                 
             msg_accel.x.push_back(pos[i][0]);
             msg_accel.y.push_back(pos[i][1]);
-            // ROS_INFO("gggerror = %f", solution->error);
             
+            
+
             // update particle fitness
             fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params);
             ROS_INFO("i = %d, fit = %f, posx = %f, posy = %f", i, fit[i], msg_accel.x.back(), msg_accel.y.back());
@@ -581,9 +639,23 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             ROS_INFO("goal = %f", settings->goal);
             ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
             ROS_INFO("error = %f", solution->error);
-
-        for(int i = 0;i<1000000; i++);
+            // //for(int i = 0;i<1000000; i++);
+            for(int j = 0; j<edgepoint_list.size(); j++)
+            {
+                if(!posInObs[i])
+                {
+                    posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), 10);
+                    if(posInObs[i])
+                        break;
+                }
+            }
+            cpoint.push_back(Point3i(pos[i][0], pos[i][1], 0));
+            
         }
+        show_image(cpoint, 10, &posInObs[0], step+1);
+        memset(posInObs, 0, settings->size * sizeof(bool));
+        cpoint.clear();
+
         ROS_INFO("step = %d", step);
         msg_accel.cnt=settings->size;
         pub_accel.publish( msg_accel );
@@ -593,7 +665,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                     solution_msg.x = solution->gbest[0];
                     solution_msg.y = solution->gbest[1];
                     solution_pub.publish(solution_msg);
-        for(int i = 0;i<10000000; i++);
+        for(int i = 0;i<50000000; i++);
 
         // if (settings->print_every && (step % settings->print_every == 0))
         //     printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);
@@ -612,4 +684,5 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     free(comm);
     free(fit);
     free(fit_b);
+    free(posInObs);
 }

@@ -130,7 +130,15 @@ void KidsizeStrategy::Obstaclefreearea(const strategy::obstacle &msg)
     
     obs_coordinate[0] = *(free_coordinate);
     obs_coordinate[1] = *(free_coordinate+1);
-    sleep(1);
+    // sleep(1);
+}
+
+void KidsizeStrategy::Reachable_Region(const strategy::ReachableRegion &msg)
+{
+    freelimit[0] = msg.x;
+    freelimit[1] = msg.Width+msg.x;
+    freelimit[2] = msg.y;
+    freelimit[3] = msg.Height+msg.y;
 }
 
 //==============================================================

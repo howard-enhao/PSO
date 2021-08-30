@@ -32,9 +32,12 @@ add_message_files(DIRECTORY msg
 	obstacle.msg
 	step_space.msg
 	solution.msg
+	EdgePointArray.msg
+	EdgePointList.msg
+	ReachableRegion.msg
 )
 
-generate_messages(DEPENDENCIES std_msgs)
+generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 #add_message_files(DIRECTORY msg
 #	FILES
 #)

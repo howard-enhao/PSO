@@ -62,8 +62,23 @@ void Edge_detection::strategymain()
     {
         orign_img = imread("/home/ching/git/test.png");
         imshow("view", orign_img);
+        namedWindow("img");
         waitKey(30);
+        Mat frame_img = Mat::zeros(orign_img.size(),CV_8UC1);
+
+        reachable_region.x = 30;
+        reachable_region.y = 30;
+        reachable_region.Width = 220;
+        reachable_region.Height = 200;
+        // reachable_region.x = 30;
+        // reachable_region.y = 30;
+        // reachable_region.Width = 130;
+        // reachable_region.Height = 200;
+
+        Rect rect(reachable_region.x, reachable_region.y, reachable_region.Width, reachable_region.Height);
+        Mat ROI = orign_img(rect);
         Canny(orign_img, edge, 50, 150, 3);
+        Reachable_region_pub.publish(reachable_region);
         // imshow("edge", edge);
         // waitKey(30);
         // cvtColor(edge, frame, cv::COLOR_GRAY2BGR);
@@ -77,7 +92,7 @@ void Edge_detection::strategymain()
 
         /*  繪製原始輪廓與顯示輪廓點集 */
         // vector<vector<Point>> contours;
-        // vector<Vec4i> hierarchy;
+        // vector<Vec4initializei> hierarchy;
         // findContours(edge,contours,hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,Point());
         // Mat imageContours=Mat::zeros(edge.size(),CV_8UC1);
         // Mat Contours=Mat::zeros(edge.size(),CV_8UC1);
@@ -86,24 +101,39 @@ void Edge_detection::strategymain()
         /*  縮小物件輪廓 */
         vector<vector<Point>> ring_contours;
         vector<Vec4i> ring_hierarchy;
-        Mat orign_frame;
+        Mat ROI_frame;
         Mat dist=Mat::zeros(edge.size(),CV_32FC1);
         Mat Shrink=Mat::zeros(edge.size(),CV_8UC1);
         Mat ring = Mat::zeros(edge.size(),CV_8UC1);
-        cvtColor(orign_img, orign_frame, cv::COLOR_BGR2GRAY);
-        orign_frame = ~orign_frame;
-        distanceTransform(orign_frame, dist, DIST_L2, DIST_MASK_PRECISE);
+        cvtColor(ROI, ROI_frame, cv::COLOR_BGR2GRAY);
+        Mat edge_1;
+        Canny(ROI_frame, edge_1, 50, 150, 3);
+        // imshow("edge", ROI_frame);
+        // imshow("edge_1", edge_1);
+        // waitKey(30);
+        edge_1 = ~edge_1;
+        // ROI_frame = ~ROI_frame;
+        Mat temp = frame_img(rect);
+        // ROI_frame.copyTo(temp);
+        edge_1.copyTo(temp);
+        distanceTransform(frame_img, dist, DIST_L2, DIST_MASK_PRECISE);
         inRange(dist, 9, 10, ring);
         findContours(ring,ring_contours,ring_hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,Point());
         
+        // distanceTransform(edge_1, dist, DIST_L2, DIST_MASK_PRECISE);
+        // inRange(dist, 9, 10, ring);
+        // findContours(ring,ring_contours,ring_hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,Point());
+        
 
+        strategy::EdgePointList edgepointlist;
         for(int i=0;i<ring_contours.size();i++)
         {
             bool PointWithinObs = false;
             int InObs = -1;
             bool CCRisInObs = false;
             geometry_msgs::Point32 point;
-            geometry_msgs::Polygon polygon;
+            strategy::EdgePointArray polygon;
+            
             // contours[i]代表的是第i個輪廓，contours[i].size()代表的是第i個輪廓上所有的像素點數
             // for(int j=0;j<contours[i].size();j++) 
             // {
@@ -126,8 +156,9 @@ void Edge_detection::strategymain()
                 // printf("%f, %f, %f\n", point.x, point.y, point.z);
             }
             // printf("size = %d \n", polygon.points.size());
-            edgepoint_pub.publish(polygon);
+            edgepointlist.Edgepointlist.push_back(polygon);
             polygon.points.clear();
+            
             // 輸出hierarchy向量内容
             char ch[256];
             sprintf(ch,"%d",i);
@@ -150,13 +181,17 @@ void Edge_detection::strategymain()
             }
             cout<<endl<<endl<<endl;
         }
+        edgepoint_pub.publish(edgepointlist);
+        edgepointlist.Edgepointlist.clear();
         addWeighted(Shrink, 1, edge, 0.3, 0, Shrink);  //合成edgeimg與shrinkimg
+        rectangle(Shrink, rect, Scalar(200), 1, 8, 0);
         // imshow("dist", dist);
         // imshow("ring", ring);
         imshow("Shrink", Shrink);  //縮小後的輪廓
         // imshow("Contours Image",imageContours); //輪廓
         // imshow("Point of Contours",Contours);   //向量contours内保存的所有輪廓點集
         waitKey(30);
+        imwrite("/home/ching/git/finalimage.png", Shrink);
         cvtColor(Shrink, frame, cv::COLOR_GRAY2BGR);
         edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
         edgeimage_Publisher.publish(edgeimage_msg);
