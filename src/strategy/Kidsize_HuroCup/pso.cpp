@@ -114,7 +114,7 @@ void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int s
     strcat(path, step_num);
     strcat(path, ".png");
     imwrite(path, final_img);
-    waitKey(1);
+    waitKey(500);
 }
 //==============================================================
 // calulate swarm size based on dimensionality
@@ -468,7 +468,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                     pos[i][d] = settings->range_lo[d]-foot_area[d*2];
                     vel[i][d] = 0;
                 } else if (pos[i][d] > settings->range_hi[d]-foot_area[d*2+1]) {
-                    pos[i][d] = settings->range_hi[d]-foot_area[d*2+1];
+                    pos[i][d] = settings->range_hi[d]-foot_area[d*2+1]-1;
                     vel[i][d] = 0;
                 }
             } else {
@@ -510,14 +510,14 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         {
             if(!posInObs[i])
             {
-                posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), 10);
+                posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), 15);
                 if(posInObs[i])
                     break;
             }
         }
         cpoint.push_back(Point3i(pos[i][0], pos[i][1], 0));
     }
-    show_image(cpoint, 10, &posInObs[0], 0);
+    show_image(cpoint, 15, &posInObs[0], 0);
     memset(posInObs, 0, settings->size * sizeof(bool));
     cpoint.clear();
     msg_accel.cnt=settings->size;
@@ -578,7 +578,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                         pos[i][d] = settings->range_lo[d]-foot_area[d*2];
                         vel[i][d] = 0;
                     } else if (pos[i][d] > settings->range_hi[d]-foot_area[d*2+1]) {
-                        pos[i][d] = settings->range_hi[d]-foot_area[d*2+1];
+                        pos[i][d] = settings->range_hi[d]-foot_area[d*2+1]-1;
                         vel[i][d] = 0;
                     }
                 } else {
@@ -644,7 +644,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             {
                 if(!posInObs[i])
                 {
-                    posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), 10);
+                    posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), 15);
                     if(posInObs[i])
                         break;
                 }
@@ -652,7 +652,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             cpoint.push_back(Point3i(pos[i][0], pos[i][1], 0));
             
         }
-        show_image(cpoint, 10, &posInObs[0], step+1);
+        show_image(cpoint, 15, &posInObs[0], step+1);
         memset(posInObs, 0, settings->size * sizeof(bool));
         cpoint.clear();
 

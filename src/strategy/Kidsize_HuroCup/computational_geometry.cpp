@@ -130,15 +130,23 @@ double Computational_geometry::ptolDistance(const Point3i& p, const Line& l)
 {
     Point3i line_vec = sub(l.e,l.s);
     Point3i point_vec = sub(p, l.s);
-    // cout<<l.e<<","<<l.s<<","<<p<<endl;
-    // cout<<line_vec<<","<<point_vec<<endl;
+    
     // 計算點線上段投影長度
     double project_len = dotMultiply(line_vec, point_vec) / length(line_vec);
-
     // 點的距離(勾股定理)
     double distance = sqrt(pow(length(point_vec), 2) - pow(project_len, 2));
-    // printf("sqrt(%f-%f,2)\n", pow(length(point_vec), 2), pow(project_len, 2));
-    // printf("project_len= %f, distance=%f\n", project_len, distance);
+    if(project_len>length(line_vec))
+    {
+        distance = sqrt(pow(distance, 2) + pow(project_len - length(line_vec), 2));
+    }
+    else if(project_len<0)
+    {
+        distance = sqrt(pow(distance, 2) + pow(-project_len, 2));
+    }
+    else
+    {
+        distance = distance;
+    }
     return distance;
 }
 
@@ -323,19 +331,10 @@ bool Computational_geometry::isPointInPolygon(const vector<Point3i>& polygon, co
 int Computational_geometry::segToCircle(const Point3f& c, double radius, const Line& l)
 {
     double ctol_d = ptolDistance(c, l);
-    // printf("ctol = %f, radius = %f\n", ctol_d, radius);
     if (ctol_d > radius)
         return 2;
-    else if (ctol_d == radius)
-        return 1;
     else
-    {
-        Point3f project_p = ptolProjection(c, l);
-        if (isponl(project_p, l))
-            return 1;
-        else
-            return 2;
-    }
+        return 1;
 }
 
 /*  判斷圓是否在多邊形內部

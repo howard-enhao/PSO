@@ -62,7 +62,6 @@ void Edge_detection::strategymain()
     {
         orign_img = imread("/home/ching/git/test.png");
         imshow("view", orign_img);
-        namedWindow("img");
         waitKey(30);
         Mat frame_img = Mat::zeros(orign_img.size(),CV_8UC1);
 
@@ -166,7 +165,7 @@ void Edge_detection::strategymain()
             cout<<"向量hierarchy的第" <<str<<" 個元素内容為："<<ring_hierarchy[i]<<endl<<endl;
             // printf("point  %d\n", Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0)));
             // printf("point = %d\n", Computational_geometry->isCircleInPolygon(edge_point, Point3i(200, 120, 0), 5));
-            //////CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(70, 80, 0), 20);
+            // CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(160, 100, 0), 10);
             // PointWithinObs = Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0));
             edge_point.clear();
 
