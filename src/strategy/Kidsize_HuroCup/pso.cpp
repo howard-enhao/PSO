@@ -494,7 +494,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         msg_accel.y.push_back(pos[i][1]);
         // update particle fitness
         ROS_INFO("pos[%d][0] = %f, pos[%d][1] = %f", i, pos[i][0], i, pos[i][1]);
-        fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params);
+        fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params, posInObs[i]);
         ROS_INFO("fit[%d] = %f", i, fit[i]);
         fit_b[i] = fit[i]; // this is also the personal best
         // update gbest??
@@ -516,6 +516,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             }
         }
         cpoint.push_back(Point3i(pos[i][0], pos[i][1], 0));
+        
     }
     show_image(cpoint, 15, &posInObs[0], 0);
     memset(posInObs, 0, settings->size * sizeof(bool));
@@ -602,10 +603,18 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             msg_accel.x.push_back(pos[i][0]);
             msg_accel.y.push_back(pos[i][1]);
             
-            
-
+            for(int j = 0; j<edgepoint_list.size(); j++)
+            {
+                if(!posInObs[i])
+                {
+                    posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), 15);
+                    if(posInObs[i])
+                        break;
+                }
+            }
+            cpoint.push_back(Point3i(pos[i][0], pos[i][1], 0));
             // update particle fitness
-            fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params);
+            fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params, posInObs[i]);
             ROS_INFO("i = %d, fit = %f, posx = %f, posy = %f", i, fit[i], msg_accel.x.back(), msg_accel.y.back());
             ROS_INFO("w = %f", w);
             // update personal best position?
@@ -640,16 +649,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
             ROS_INFO("error = %f", solution->error);
             // //for(int i = 0;i<1000000; i++);
-            for(int j = 0; j<edgepoint_list.size(); j++)
-            {
-                if(!posInObs[i])
-                {
-                    posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), 15);
-                    if(posInObs[i])
-                        break;
-                }
-            }
-            cpoint.push_back(Point3i(pos[i][0], pos[i][1], 0));
+            
             
         }
         show_image(cpoint, 15, &posInObs[0], step+1);

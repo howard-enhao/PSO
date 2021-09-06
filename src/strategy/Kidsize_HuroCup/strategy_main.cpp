@@ -5,7 +5,7 @@
 //                  BENCHMARK FUNCTIONS
 //==============================================================
 
-double pso_sphere(double *pos, int dim, void *params) {
+double pso_sphere(double *pos, int dim, void *params, bool posInObs) {
 
     // double sum = 0;
     // int i;
@@ -19,15 +19,17 @@ double pso_sphere(double *pos, int dim, void *params) {
     int theta = 0;
     float Tdsp = 0, Tssp = 0;
     double sum_objective_function = 0;
-    double objective_function[4] = {0};
-    objective_function[0] = w1*abs(160-pos[0]);  /*X direction*/
-    objective_function[1] = w2*abs(120-pos[1]);  /*Y direction*/
+    double objective_function[5] = {0};
+    objective_function[0] = w1*abs(freecenter[0]-pos[0]);  /*X direction*/
+    objective_function[1] = w2*abs(freecenter[1]-pos[1]);  /*Y direction*/
     objective_function[2] = w3*abs(theta-theta);               /*Rotation*/
     objective_function[3] = w4*(Tdsp+Tssp);                    /*step period*/
+    if(!posInObs)
+        objective_function[4] = 100;
     ROS_INFO("pos[0] = %f, pos[1] = %f", pos[0], pos[1]);
     // ROS_INFO("size = %d", sizeof(objective_function));
     
-    for (int i=0; i<4; i++)
+    for (int i=0; i<5; i++)
     {
         sum_objective_function += objective_function[i];
         // ROS_INFO("sum%d = %f", i,sum_objective_function);
@@ -139,6 +141,8 @@ void KidsizeStrategy::Reachable_Region(const strategy::ReachableRegion &msg)
     freelimit[1] = msg.Width+msg.x;
     freelimit[2] = msg.y;
     freelimit[3] = msg.Height+msg.y;
+    freecenter[0] = (freelimit[0]+freelimit[1])/2;
+    freecenter[1] = (freelimit[2]+freelimit[3])/2;
 }
 
 //==============================================================

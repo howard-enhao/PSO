@@ -19,7 +19,7 @@
 #include "strategy/pso.h"
 
 using namespace std;
-
+int freecenter[2] = {0};
 // class KidsizeStrategy;
 // typedef double (*pso_obj_fun_t)(double *pos, int dim, void *params);
 class KidsizeStrategy
@@ -53,9 +53,9 @@ class KidsizeStrategy
 		bool init = true;
 		float obs_coordinate[2] = {0};
 		float free_limit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/
-		float freelimit[4] = {0};
+		float freelimit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/
 		float *free_coordinate[2] = {0}; /**free_coordinate = [x, y]*/
-
+		
 		/*foot width = 60 , foot hight = 80*/
 		int foot_width = 60;
 		int foot_height = 80;

@@ -72,7 +72,7 @@ typedef struct {
 
 class PSO;
 // OBJECTIVE FUNCTION TYPE
-typedef double (*pso_obj_fun_t)(double *, int, void *);
+typedef double (*pso_obj_fun_t)(double *, int, void *, bool);
 
 
 
