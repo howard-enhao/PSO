@@ -15,6 +15,11 @@ void Edge_detection::Catch_image(const sensor_msgs::ImageConstPtr& msg)
     }
 }
 
+void Edge_detection::stepcheck_callback(const std_msgs::Bool& msg)
+{
+    now_step = msg.data;
+}
+
 string type2str(int type)
 {
     string r;
@@ -64,16 +69,24 @@ void Edge_detection::strategymain()
         imshow("view", orign_img);
         waitKey(30);
         Mat frame_img = Mat::zeros(orign_img.size(),CV_8UC1);
-
-        reachable_region.x = 30;
-        reachable_region.y = 30;
-        reachable_region.Width = 220;
-        reachable_region.Height = 200;
-        // reachable_region.x = 30;
-        // reachable_region.y = 30;
-        // reachable_region.Width = 130;
-        // reachable_region.Height = 200;
-
+        
+        if(now_step)
+        {
+            reachable_region.now_step = now_step;
+            reachable_region.x = 40;
+            reachable_region.y = 100;
+            reachable_region.Width = 120;
+            reachable_region.Height = 139;
+        }
+        else
+        {
+            reachable_region.now_step = now_step;
+            reachable_region.x = 160;
+            reachable_region.y = 100;
+            reachable_region.Width = 120;
+            reachable_region.Height = 139;
+        }
+        
         Rect rect(reachable_region.x, reachable_region.y, reachable_region.Width, reachable_region.Height);
         Mat ROI = orign_img(rect);
         Canny(orign_img, edge, 50, 150, 3);
@@ -119,11 +132,6 @@ void Edge_detection::strategymain()
         inRange(dist, 9, 10, ring);
         findContours(ring,ring_contours,ring_hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,Point());
         
-        // distanceTransform(edge_1, dist, DIST_L2, DIST_MASK_PRECISE);
-        // inRange(dist, 9, 10, ring);
-        // findContours(ring,ring_contours,ring_hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,Point());
-        
-
         strategy::EdgePointList edgepointlist;
         for(int i=0;i<ring_contours.size();i++)
         {

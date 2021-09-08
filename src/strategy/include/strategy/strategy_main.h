@@ -11,6 +11,7 @@
 #include<iostream>
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/Bool.h>
 #include <geometry_msgs/Vector3.h>
 #include "strategy/obstacle.h"
 #include "strategy/particle.h"
@@ -29,8 +30,9 @@ class KidsizeStrategy
 		{
 			pso_fun = PSO_geometryInstance::getInstance();
 			sub = nh.subscribe("/Obstaclefreearea_Topic", 100, &KidsizeStrategy::Obstaclefreearea, this);
-			pub_stepspace = nh.advertise< strategy::step_space >( "/stepspace", 1000 );
-			Reachable_region_sub = nh.subscribe("/ReachableRegion_Topic", 10, &KidsizeStrategy::Reachable_Region, this);
+			pub_stepspace = nh.advertise<strategy::step_space>("/stepspace", 1);
+			stepcheck_pub = nh.advertise<std_msgs::Bool>("/stepcheck", 1);
+			Reachable_region_sub = nh.subscribe("/ReachableRegion_Topic", 1, &KidsizeStrategy::Reachable_Region, this);
 		};
 		~KidsizeStrategy()
 		{
@@ -39,6 +41,7 @@ class KidsizeStrategy
 		// typedef double (*pso_obj_fun_t)(double *pos, int dim, void *params);
 		PSO_geometryInstance *pso_fun;
 		ros::Publisher pub_stepspace;
+		ros::Publisher stepcheck_pub;
 		ros::Subscriber sub;
 		ros::Subscriber Reachable_region_sub;
 		void strategymain(ros::NodeHandle nh);
@@ -48,9 +51,12 @@ class KidsizeStrategy
 		strategy::step_space freecoordinate;
 		struct timeval tstart, tend;
 		double timeuse;
+		bool now_step = 1;
+		bool pre_step = 0;
 		bool get_obs = false;
 		bool on_floor = false;
 		bool init = true;
+		std_msgs::Bool odd_step;
 		float obs_coordinate[2] = {0};
 		float free_limit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/
 		float freelimit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/

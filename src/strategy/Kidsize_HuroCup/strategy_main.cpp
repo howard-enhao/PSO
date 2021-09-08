@@ -137,6 +137,7 @@ void KidsizeStrategy::Obstaclefreearea(const strategy::obstacle &msg)
 
 void KidsizeStrategy::Reachable_Region(const strategy::ReachableRegion &msg)
 {
+    now_step = msg.now_step;
     freelimit[0] = msg.x;
     freelimit[1] = msg.Width+msg.x;
     freelimit[2] = msg.y;
@@ -155,14 +156,11 @@ int main(int argc, char **argv) {
 	
     ros::spinOnce();
     ros::Rate loop_rate(30);
-
     while (nh.ok())
     {
         KidsizeStrategy.strategymain(nh);
         ros::spinOnce();
         loop_rate.sleep();
-        
-    
     }
     return 0;
 
@@ -170,16 +168,18 @@ int main(int argc, char **argv) {
 
 void KidsizeStrategy::strategymain(ros::NodeHandle nh)
 {
-    if(get_obs)
+    if(get_obs && now_step != pre_step)
     {
         if(init)
         {
             for(int i = 0; i<4; i++)
                 freecoordinate.step_space.push_back(freelimit[i]);
-            pub_stepspace.publish( freecoordinate );
+            pub_stepspace.publish(freecoordinate);
             freecoordinate.step_space.clear();
             init = false;
+            odd_step.data = true;
         }
+        
 
         pso_settings_t *settings = NULL;
         pso_obj_fun_t obj_fun = NULL;
@@ -214,8 +214,15 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
 
         // free the settings
         pso_fun->pso_settings_free(settings);
-        get_obs = false;
+        // get_obs = false;
+        if(odd_step.data)
+            odd_step.data = false;
+        else
+            odd_step.data = true;
+        stepcheck_pub.publish(odd_step);
         // break;
-        ros::shutdown();
+        // ros::shutdown();
+        // get_image = false;
+        pre_step = now_step;
     }
 }

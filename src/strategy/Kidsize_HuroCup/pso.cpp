@@ -114,7 +114,8 @@ void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int s
     strcat(path, step_num);
     strcat(path, ".png");
     imwrite(path, final_img);
-    waitKey(500);
+    // waitKey(500);
+    waitKey(5);
 }
 //==============================================================
 // calulate swarm size based on dimensionality

@@ -10,6 +10,7 @@
 #include <stack>
 #include <algorithm>
 #include <std_msgs/String.h>
+#include <std_msgs/Bool.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -47,12 +48,14 @@ class Edge_detection
             Computational_geometry = Computational_geometryInstance::getInstance();
             edgepoint_pub = nh.advertise<strategy::EdgePointList>("/edgepoint_Topic", 1);
             Reachable_region_pub = nh.advertise<strategy::ReachableRegion>("/ReachableRegion_Topic", 1);
+            stepcheck_subscriber = nh.subscribe("/stepcheck", 1, &Edge_detection::stepcheck_callback, this);
         };
         ~Edge_detection(){};
 
         ros::Subscriber Imagesource_subscriber;
         ros::Publisher edgepoint_pub;
         ros::Publisher Reachable_region_pub;
+        ros::Subscriber stepcheck_subscriber;
         StrategyInfoInstance *strategy_info;
         Computational_geometryInstance *Computational_geometry;
         image_transport::Publisher edgeimage_Publisher;
@@ -60,11 +63,13 @@ class Edge_detection
         strategy::ReachableRegion reachable_region;
         void strategymain();
         void Catch_image(const sensor_msgs::ImageConstPtr& msg);
+        void stepcheck_callback(const std_msgs::Bool& msg);
         Mat edge;
         Mat orign_img;
         Mat frame;
         bool checkRealImage = false;
         bool checkImageSource = false;
+        bool now_step = true;
     // private:
 };
 
