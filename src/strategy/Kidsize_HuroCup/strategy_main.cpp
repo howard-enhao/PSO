@@ -26,7 +26,6 @@ double pso_sphere(double *pos, int dim, void *params, bool posInObs) {
     objective_function[3] = w4*(Tdsp+Tssp);                    /*step period*/
     if(!posInObs)
         objective_function[4] = 100;
-    ROS_INFO("pos[0] = %f, pos[1] = %f", pos[0], pos[1]);
     // ROS_INFO("size = %d", sizeof(objective_function));
     
     for (int i=0; i<5; i++)
@@ -35,7 +34,7 @@ double pso_sphere(double *pos, int dim, void *params, bool posInObs) {
         // ROS_INFO("sum%d = %f", i,sum_objective_function);
     }
 
-    ROS_INFO("sum = %f", sum_objective_function);
+    // ROS_INFO("sum = %f", sum_objective_function);
     return sum_objective_function;
 }
 
@@ -203,7 +202,7 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
         // allocate memory for the best position buffer
             solution.gbest = (double *)malloc(settings->dim * sizeof(double));
 
-        printf("dim=%d, swarm size=%d)\n", settings->dim, settings->size);
+        // printf("(dim=%d, swarm size=%d)\n", settings->dim, settings->size);
         // sleep(2);
 
         // run optimization algorithm

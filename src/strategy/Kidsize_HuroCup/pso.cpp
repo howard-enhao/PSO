@@ -294,11 +294,11 @@ pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coord
     for (int i=0; i<settings->dim; i++) {
         settings->range_lo[i] = range_limit[i*2] - foot_area[i*2];
         settings->range_hi[i] = range_limit[i*2+1] - foot_area[i*2+1];
-        ROS_INFO("range_lo = %f , range_hi = %f", settings->range_lo[i], settings->range_hi[i]);
+        // ROS_INFO("range_lo = %f , range_hi = %f", settings->range_lo[i], settings->range_hi[i]);
     }
     // sleep(2);
     // settings->size = pso_calc_swarm_size(settings->dim);
-    settings->size = 50;
+    settings->size = 30;
     settings->print_every = 10;
     settings->steps = 50;//70;
     settings->c1 = 1.496;  //2
@@ -404,8 +404,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     inform_fun_t inform_fun = NULL; // neighborhood update function
     inertia_fun_t calc_inertia_fun = NULL; // inertia weight update function
 
-    float qq, ww;
-    int ee;
+    
     double Periodtime;
     bool CCRisInObs = false;
     bool *posInObs = (bool *)malloc(settings->size * sizeof(bool));
@@ -490,23 +489,6 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             
         }
         
-        //for(int i = 0;i<10000000; i++);
-        msg_accel.x.push_back(pos[i][0]);
-        msg_accel.y.push_back(pos[i][1]);
-        // update particle fitness
-        ROS_INFO("pos[%d][0] = %f, pos[%d][1] = %f", i, pos[i][0], i, pos[i][1]);
-        fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params, posInObs[i]);
-        ROS_INFO("fit[%d] = %f", i, fit[i]);
-        fit_b[i] = fit[i]; // this is also the personal best
-        // update gbest??
-        if (fit[i] < solution->error) {
-            // update best fitness
-            solution->error = fit[i];
-            // copy particle pos to gbest vector
-            memmove((void *)solution->gbest, (void *)pos[i],
-                    sizeof(double) * settings->dim);
-        }
-        ROS_INFO("no.%d error = %f", i, solution->error);
         for(int j = 0; j<edgepoint_list.size(); j++)
         {
             if(!posInObs[i])
@@ -517,6 +499,31 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             }
         }
         cpoint.push_back(Point3i(pos[i][0], pos[i][1], 0));
+            //for(int i = 0;i<10000000; i++);
+        msg_accel.x.push_back(pos[i][0]);
+        msg_accel.y.push_back(pos[i][1]);
+        if(posInObs[i])
+        {        
+            // update particle fitness
+            fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params, posInObs[i]);
+        }
+        else
+        {
+            fit[i] = 100;
+        }
+        // ROS_INFO("fit[%d] = %f", i, fit[i]);
+        fit_b[i] = fit[i]; // this is also the personal best
+        // update gbest??
+        if (fit[i] < solution->error) {
+            // update best fitness
+            solution->error = fit[i];
+            // copy particle pos to gbest vector
+            memmove((void *)solution->gbest, (void *)pos[i],
+                    sizeof(double) * settings->dim);
+        }
+        
+        // ROS_INFO("no.%d error = %f", i, solution->error);
+        
         
     }
     show_image(cpoint, 15, &posInObs[0], 0);
@@ -539,9 +546,8 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         // update inertia weight
         // do not bother with calling a calc_w_const function
         if (calc_inertia_fun != NULL) {
-            w = w*0.9;(this->*calc_inertia_fun)(step, settings);  //更新慣性權重
+            w = w*0.85;//(this->*calc_inertia_fun)(step, settings);  //更新慣性權重
         }
-        ROS_INFO("rrr");
         // check optimization goal
         if (solution->error <= settings->goal) {
             // SOLVED!!
@@ -549,8 +555,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                 gettimeofday(&tend, NULL);
                 Periodtime  = (1000000*(tend.tv_sec - tstart.tv_sec) + (tend.tv_usec - tstart.tv_usec))/1000;//算週期
                 printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
-                ROS_INFO("ee = %d, qq = %f, ww = %f", ee, qq, ww);
-                ROS_INFO("pos %f , %f", pos[ee][0], pos[ee][1]);
+                ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
                 ROS_INFO("timeuse = %f", Periodtime);
                 // ROS_INFO("settings->print_every = %d", settings->print_every);
                 sleep(2);
@@ -614,41 +619,43 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                 }
             }
             cpoint.push_back(Point3i(pos[i][0], pos[i][1], 0));
-            // update particle fitness
-            fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params, posInObs[i]);
-            ROS_INFO("i = %d, fit = %f, posx = %f, posy = %f", i, fit[i], msg_accel.x.back(), msg_accel.y.back());
-            ROS_INFO("w = %f", w);
-            // update personal best position?
-            if (fit[i] < fit_b[i]) {
-                fit_b[i] = fit[i];
-                // copy contents of pos[i] to pos_b[i]
-                memmove((void *)pos_b[i], (void *)pos[i],
-                        sizeof(double) * settings->dim);
-                ROS_INFO("best fit = %f, pos = %f , %f", fit_b[i],  pos_b[i][0], pos_b[i][1]);
-                // update gbest
-                if (fit_b[i] < solution->error) {
-                    ROS_INFO("update!!!!!!!!!!!!!!");
-                    improved = 1;
-                    // update best fitness
-                    solution->error = fit_b[i];
-                    qq = pos[i][0];
-                    ww = pos[i][1];
-                    ee = i;
-
-                    // for(int i = 0;i<200000000; i++);
-                    // copy particle pos to gbest vector
-                    memmove((void *)solution->gbest, (void *)pos[i],
+            if(posInObs[i])
+            {
+                // update particle fitness
+                fit[i] = (obj_fun)(pos[i], settings->dim, obj_fun_params, posInObs[i]);
+                // ROS_INFO("i = %d, fit = %f, posx = %f, posy = %f", i, fit[i], msg_accel.x.back(), msg_accel.y.back());
+                // ROS_INFO("w = %f", w);
+                // update personal best position?
+                if (fit[i] < fit_b[i]) {
+                    fit_b[i] = fit[i];
+                    // copy contents of pos[i] to pos_b[i]
+                    memmove((void *)pos_b[i], (void *)pos[i],
                             sizeof(double) * settings->dim);
-                    ROS_INFO("---------------------------------");
-                    ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
-                    ROS_INFO("error = %f", solution->error);
-                    ROS_INFO("---------------------------------");
-                    // for(int i = 0;i<500000000; i++);
+                    // ROS_INFO("best fit = %f, pos = %f , %f", fit_b[i],  pos_b[i][0], pos_b[i][1]);
+                    // update gbest
+                    if (fit_b[i] < solution->error) {
+                        // ROS_INFO("update!!!!!!!!!!!!!!");
+                        improved = 1;
+                        // update best fitness
+                        solution->error = fit_b[i];
+
+                        // for(int i = 0;i<200000000; i++);
+                        // copy particle pos to gbest vector
+                        memmove((void *)solution->gbest, (void *)pos[i],
+                                sizeof(double) * settings->dim);
+                        // ROS_INFO("---------------------------------");
+                        // ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
+                        // ROS_INFO("error = %f", solution->error);
+                        // ROS_INFO("---------------------------------");
+                        // for(int i = 0;i<500000000; i++);
+                    }
                 }
             }
-            ROS_INFO("goal = %f", settings->goal);
-            ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
-            ROS_INFO("error = %f", solution->error);
+            
+            
+            // ROS_INFO("goal = %f", settings->goal);
+            // ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
+            // ROS_INFO("error = %f", solution->error);
             // //for(int i = 0;i<1000000; i++);
             
             
@@ -657,7 +664,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         memset(posInObs, 0, settings->size * sizeof(bool));
         cpoint.clear();
 
-        ROS_INFO("step = %d", step);
+        // ROS_INFO("step = %d", step);
         msg_accel.cnt=settings->size;
         pub_accel.publish( msg_accel );
         msg_accel.x.clear();
@@ -675,8 +682,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     // gettimeofday(&tend, NULL);
     //             Periodtime  = (1000000*(tend.tv_sec - tstart.tv_sec) + (tend.tv_usec - tstart.tv_usec))/1000;//算週期
     printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
-    ROS_INFO("ee = %d, qq = %f, ww = %f", ee, qq, ww);
-    ROS_INFO("pos %f , %f", pos[ee][0], pos[ee][1]);
+    ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
     ROS_INFO("timeuse = %f", Periodtime);
     sleep(2);
                 // break;
