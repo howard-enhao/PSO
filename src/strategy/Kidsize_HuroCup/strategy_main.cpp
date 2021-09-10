@@ -204,7 +204,7 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
             solution.gbest = (double *)malloc(settings->dim * sizeof(double));
 
         printf("dim=%d, swarm size=%d)\n", settings->dim, settings->size);
-        sleep(2);
+        // sleep(2);
 
         // run optimization algorithm
         pso_fun->pso_solve(obj_fun, NULL, &solution, settings, nh);

@@ -289,9 +289,9 @@ bool Computational_geometry::isPointInPolygon(const vector<Point3i>& polygon, co
 
     // 位於多邊形外部一點
     if(down_left.x<3 || down_left.y<3)
-        out_p = add(up_right, Point3f(3.0, 4.0, 0.0));
+        out_p = add(up_right, Point3f(-3.0, 4.0, 0.0));
     else
-        out_p = sub(down_left, Point3f(2.0, 3.0, 0.0));
+        out_p = sub(down_left, Point3f(-2.0, 3.0, 0.0));
     
     int cnt(0);
     Line p_line(p, out_p, true);
@@ -317,7 +317,7 @@ bool Computational_geometry::isPointInPolygon(const vector<Point3i>& polygon, co
         }
     }
     // cout<<"cnt = "<<cnt<<endl;  //cnt奇數為點在obs內，偶數則反
-    // imshow("inter_p",Contours);
+    // imshow("isPointInPolygon",Contours);
     // waitKey(1);
 
     return (cnt % 2 == 1);
@@ -359,13 +359,13 @@ bool Computational_geometry::isCircleInPolygon(const vector<Point3i>& polygon, c
             
             if (segToCircle(c, radius, line) != 2)
             {
-                // imshow("inter_p",Contours);
+                // imshow("isCircleOutPolygon",Contours);
                 // waitKey(1);
                 return false;
             }
         }
         circle(Contours, Point(c.x, c.y), radius, Scalar(0,255,0));
-        // imshow("inter_p",Contours);
+        // imshow("isCircleInPolygon",Contours);
         // waitKey(1);
         return true;
     }

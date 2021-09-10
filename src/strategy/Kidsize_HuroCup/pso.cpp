@@ -296,7 +296,7 @@ pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coord
         settings->range_hi[i] = range_limit[i*2+1] - foot_area[i*2+1];
         ROS_INFO("range_lo = %f , range_hi = %f", settings->range_lo[i], settings->range_hi[i]);
     }
-    sleep(2);
+    // sleep(2);
     // settings->size = pso_calc_swarm_size(settings->dim);
     settings->size = 50;
     settings->print_every = 10;
@@ -373,8 +373,8 @@ void PSO::position_limit(double *pos, double *vel, pso_settings_t *settings) {
 void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 	       pso_result_t *solution, pso_settings_t *settings, ros::NodeHandle nh)
 {
-    namedWindow("img");
-    waitKey(3000);
+    // namedWindow("img");
+    // waitKey(3000);
     struct timeval tstart, tend;
     gettimeofday(&tstart, NULL);
     ros::Publisher pub_accel = nh.advertise< strategy::particle >( "accel", 1000 );
@@ -529,7 +529,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     solution_msg.x = solution->gbest[0];
     solution_msg.y = solution->gbest[1];
     solution_pub.publish(solution_msg);
-    for(int i = 0;i<100000000; i++);
+    // for(int i = 0;i<100000000; i++);
     // sleep(3);
     
     // RUN ALGORITHM
@@ -553,7 +553,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                 ROS_INFO("pos %f , %f", pos[ee][0], pos[ee][1]);
                 ROS_INFO("timeuse = %f", Periodtime);
                 // ROS_INFO("settings->print_every = %d", settings->print_every);
-                // sleep(2);
+                sleep(2);
             break;
         }
         // update pos_nb matrix (find best of neighborhood for all particles)
@@ -666,7 +666,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                     solution_msg.x = solution->gbest[0];
                     solution_msg.y = solution->gbest[1];
                     solution_pub.publish(solution_msg);
-        for(int i = 0;i<50000000; i++);
+        // for(int i = 0;i<50000000; i++);
 
         // if (settings->print_every && (step % settings->print_every == 0))
         //     printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);
@@ -678,6 +678,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     ROS_INFO("ee = %d, qq = %f, ww = %f", ee, qq, ww);
     ROS_INFO("pos %f , %f", pos[ee][0], pos[ee][1]);
     ROS_INFO("timeuse = %f", Periodtime);
+    sleep(2);
                 // break;
     // free resources
     pso_matrix_free(pos, settings->size);

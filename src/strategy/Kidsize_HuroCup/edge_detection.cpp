@@ -165,7 +165,6 @@ void Edge_detection::strategymain()
             // printf("size = %d \n", polygon.points.size());
             edgepointlist.Edgepointlist.push_back(polygon);
             polygon.points.clear();
-            
             // 輸出hierarchy向量内容
             char ch[256];
             sprintf(ch,"%d",i);
@@ -173,7 +172,7 @@ void Edge_detection::strategymain()
             cout<<"向量hierarchy的第" <<str<<" 個元素内容為："<<ring_hierarchy[i]<<endl<<endl;
             // printf("point  %d\n", Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0)));
             // printf("point = %d\n", Computational_geometry->isCircleInPolygon(edge_point, Point3i(200, 120, 0), 5));
-            // CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(160, 100, 0), 10);
+            // CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(220, 188, 0), 15);
             // PointWithinObs = Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0));
             edge_point.clear();
 
