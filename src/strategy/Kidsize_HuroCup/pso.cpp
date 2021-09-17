@@ -94,7 +94,7 @@ void PSO::get_edgepoint(const strategy::EdgePointList &msg)
 
 void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int step)
 {
-    Mat img = imread("/home/ching/git/finalimage.png");
+    Mat img = imread("/home/iclab/Desktop/PSO/finalimage.png");
     Mat Contours=Mat::zeros(img.size(),CV_8UC3);
     Mat final_img;
     for(int i = 0; i < c.size(); ++i)
@@ -107,13 +107,13 @@ void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int s
     }
 
     addWeighted(Contours, 1, img, 1, 0, final_img);
-    imshow("img", final_img);
+    // imshow("img", final_img);
     char path[50] = "/home/ching/git/test_img/final_";
     string temp_str = to_string(step);
     char const* step_num= temp_str.c_str();
     strcat(path, step_num);
     strcat(path, ".png");
-    imwrite(path, final_img);
+    // imwrite(path, final_img);
     waitKey(500);
 }
 //==============================================================
@@ -372,8 +372,8 @@ void PSO::position_limit(double *pos, double *vel, pso_settings_t *settings) {
 void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 	       pso_result_t *solution, pso_settings_t *settings, ros::NodeHandle nh)
 {
-    namedWindow("img");
-    waitKey(3000);
+    // namedWindow("img");
+    // waitKey(3000);
     struct timeval tstart, tend;
     gettimeofday(&tstart, NULL);
     ros::Publisher pub_accel = nh.advertise< strategy::particle >( "accel", 1000 );
