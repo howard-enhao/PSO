@@ -193,7 +193,7 @@ void Edge_detection::strategymain()
         imwrite("/home/iclab/Desktop/PSO/finalimage.png", Shrink);
         cvtColor(Shrink, frame, cv::COLOR_GRAY2BGR);
         edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
-        edgeimage_Publisher.publish(edgeimage_msg);
+        // edgeimage_Publisher.publish(edgeimage_msg);
         for(int i = 0;i<100000000; i++);
     }
     checkImageSource = false;

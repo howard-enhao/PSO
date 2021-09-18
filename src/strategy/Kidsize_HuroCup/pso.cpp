@@ -29,6 +29,9 @@ PSO::~PSO()
 void PSO::initialize()
 {
     edgepoint_subscriber = nh.subscribe("/edgepoint_Topic", 10, &PSO::get_edgepoint, this);
+        image_transport::ImageTransport it(nh);
+        // image_transport::Publisher edgeimage_Publisher;
+        edgeimage_Publisher = it.advertise("edge_image", 1, this);
     Computational_geometry = Computational_geometryInstance::getInstance();
 }
 // double PSO::pso_sphere(double *pos, int dim, void *params) {
@@ -107,6 +110,8 @@ void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int s
     }
 
     addWeighted(Contours, 1, img, 1, 0, final_img);
+    edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", final_img).toImageMsg();
+    edgeimage_Publisher.publish(edgeimage_msg);
     // imshow("img", final_img);
     char path[50] = "/home/ching/git/test_img/final_";
     string temp_str = to_string(step);
@@ -114,7 +119,7 @@ void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int s
     strcat(path, step_num);
     strcat(path, ".png");
     // imwrite(path, final_img);
-    waitKey(500);
+    // waitKey(500);
 }
 //==============================================================
 // calulate swarm size based on dimensionality
@@ -527,7 +532,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     solution_msg.x = solution->gbest[0];
     solution_msg.y = solution->gbest[1];
     solution_pub.publish(solution_msg);
-    for(int i = 0;i<100000000; i++);
+    // for(int i = 0;i<100000000; i++);
     // sleep(3);
     
     // RUN ALGORITHM
@@ -665,7 +670,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                     solution_msg.x = solution->gbest[0];
                     solution_msg.y = solution->gbest[1];
                     solution_pub.publish(solution_msg);
-        for(int i = 0;i<50000000; i++);
+        // for(int i = 0;i<50000000; i++);
 
         // if (settings->print_every && (step % settings->print_every == 0))
         //     printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);

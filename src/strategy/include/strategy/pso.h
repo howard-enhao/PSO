@@ -57,6 +57,9 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
+#include "sensor_msgs/Image.h"
+#include <sensor_msgs/image_encodings.h>
 using namespace cv;
 
 using namespace std;
@@ -140,9 +143,12 @@ class PSO
         static double sum_objective_function;
         vector<vector<Point3i>> edgepoint_list;
         vector<Point3i> edge_point;
+        sensor_msgs::ImagePtr edgeimage_msg;
     private:
         ros::NodeHandle nh;
 		ros::Subscriber edgepoint_subscriber;
+        image_transport::Publisher edgeimage_Publisher;
+        // edgeimage_Publisher = it.advertise("edge_image", 1, this);
     protected:
         Computational_geometryInstance *Computational_geometry;
 };
