@@ -29,6 +29,9 @@ PSO::~PSO()
 void PSO::initialize()
 {
     edgepoint_subscriber = nh.subscribe("/edgepoint_Topic", 10, &PSO::get_edgepoint, this);
+        image_transport::ImageTransport it(nh);
+        // image_transport::Publisher edgeimage_Publisher;
+        edgeimage_Publisher = it.advertise("edge_image", 1, this);
     Computational_geometry = Computational_geometryInstance::getInstance();
 }
 // double PSO::pso_sphere(double *pos, int dim, void *params) {
@@ -94,7 +97,7 @@ void PSO::get_edgepoint(const strategy::EdgePointList &msg)
 
 void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int step)
 {
-    Mat img = imread("/home/ching/git/finalimage.png");
+    Mat img = imread("/home/iclab/Desktop/PSO/finalimage.png");
     Mat Contours=Mat::zeros(img.size(),CV_8UC3);
     Mat final_img;
     for(int i = 0; i < c.size(); ++i)
@@ -107,15 +110,16 @@ void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int s
     }
 
     addWeighted(Contours, 1, img, 1, 0, final_img);
-    imshow("img", final_img);
+    edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", final_img).toImageMsg();
+    edgeimage_Publisher.publish(edgeimage_msg);
+    // imshow("img", final_img);
     char path[50] = "/home/ching/git/test_img/final_";
     string temp_str = to_string(step);
     char const* step_num= temp_str.c_str();
     strcat(path, step_num);
     strcat(path, ".png");
-    imwrite(path, final_img);
+    // imwrite(path, final_img);
     // waitKey(500);
-    waitKey(5);
 }
 //==============================================================
 // calulate swarm size based on dimensionality
