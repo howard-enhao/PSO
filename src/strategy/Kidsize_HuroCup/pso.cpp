@@ -97,7 +97,8 @@ void PSO::get_edgepoint(const strategy::EdgePointList &msg)
 
 void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int step)
 {
-    Mat img = imread("/home/iclab/Desktop/PSO/finalimage.png");
+    // Mat img = imread("/home/iclab/Desktop/PSO/finalimage.png");
+    Mat img = imread("/home/ching/git/PSO/finalimage.png");
     Mat Contours=Mat::zeros(img.size(),CV_8UC3);
     Mat final_img;
     for(int i = 0; i < c.size(); ++i)
