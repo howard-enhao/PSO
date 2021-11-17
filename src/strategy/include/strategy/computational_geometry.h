@@ -74,6 +74,7 @@ class Computational_geometry
         bool isPointInPolygon(const vector<Point3i>& polygon, const Point3i& p);
         bool isCircleInPolygon(const vector<Point3i>& polygon, const Point3i& c, double radius);
 
+        bool areaOfPolygon(const vector<Point3i>& polygon);
         double dotMultiply(const Point3f& vec1, const Point3f& vec2);
         double length(const Point3f& vec);
         double ptolDistance(const Point3i& p, const Line& l);

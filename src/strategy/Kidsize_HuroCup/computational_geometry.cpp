@@ -279,6 +279,25 @@ void Computational_geometry::boxOfPolygon(const vector<Point3i>& polygon, Point3
     up_right = Point3f(max_x, max_y, 0);
 }
 
+/*  判斷計算多邊形面積是否大於定值
+    polygon：多邊形的點*/
+bool Computational_geometry::areaOfPolygon(const vector<Point3i>& polygon)
+{
+    // 如果多邊形點的數量少於三個則不成立
+    int size = polygon.size();
+    if (size < 3) return 0;
+    double area(0.0);
+    for (int i = 0; i < size; ++i)
+    {
+        area += (240-polygon[(i + 1 + size) % size].y) * polygon[i].x;
+        area -= (240-polygon[i].y) * (polygon[(i + 1 + size) % size].x);
+    }
+    if(area>1000)
+        return true;
+    else
+        return false;//(area / 2);
+}
+
 /*  判斷點是否在多邊形內部
     polygon：多邊形的點
     p：要判斷的點*/

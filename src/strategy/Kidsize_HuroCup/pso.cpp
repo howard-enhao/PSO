@@ -493,7 +493,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             }
             
         }
-        
+        // cout<<"size = "<<edgepoint_list.size()<<endl;
         for(int j = 0; j<edgepoint_list.size(); j++)
         {
             if(!posInObs[i])

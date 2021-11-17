@@ -70,6 +70,7 @@ class Edge_detection
         bool checkRealImage = false;
         bool checkImageSource = false;
         bool now_step = true;
+        bool pre_now_step = false;
     // private:
 };
 
