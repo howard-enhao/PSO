@@ -67,15 +67,15 @@ using namespace std;
 // PSO SOLUTION -- Initialized by the user
 typedef struct {
 
-    double error;
-    double *gbest; // should contain DIM elements!!
+    float error;
+    float *gbest; // should contain DIM elements!!
 
 } pso_result_t;
 
 
 class PSO;
 // OBJECTIVE FUNCTION TYPE
-typedef double (*pso_obj_fun_t)(double *, int, void *, bool);
+typedef double (*pso_obj_fun_t)(float *, int, void *, bool);
 
 
 
@@ -85,16 +85,16 @@ typedef struct {
     int dim; // problem dimensionality
     double *range_lo; // lower range limit (array of length DIM)
     double *range_hi; // higher range limit (array of length DIM)
-    double goal; // optimization goal (error threshold)
+    float goal; // optimization goal (error threshold)
 
     int size; // swarm size (number of particles)
     int print_every; // ... N steps (set to 0 for no output)
     int steps; // maximum number of iterations
     int step; // current PSO step
-    double c1; // cognitive coefficient
-    double c2; // social coefficient
-    double w_max; // max inertia weight value
-    double w_min; // min inertia weight value
+    float c1; // cognitive coefficient
+    float c2; // social coefficient
+    float w_max; // max inertia weight value
+    float w_min; // min inertia weight value
 
     int clamp_pos; // whether to keep particle position within defined bounds (TRUE)
     // or apply periodic boundary conditions (FALSE)
@@ -107,9 +107,9 @@ typedef struct {
 pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate);
 
 // function type for the different inform functions
-typedef void (PSO::*inform_fun_t)(int *comm, double **pos_nb,
-                             double **pos_b, double *fit_b,
-                             double *gbest, int improved,
+typedef void (PSO::*inform_fun_t)(int *comm, float **pos_nb,
+                             float **pos_b, float *fit_b,
+                             float *gbest, int improved,
                              pso_settings_t *settings);
 
 // function type for the different inertia calculation functions
@@ -125,15 +125,15 @@ class PSO
         // typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
         int pso_calc_swarm_size(int dim);
         double calc_inertia_lin_dec(int step, pso_settings_t *settings);
-        void pso_matrix_free(double **m, int size);
+        void pso_matrix_free(float **m, int size);
         void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 	       pso_result_t *solution, pso_settings_t *settings, ros::NodeHandle nh);
-        void position_limit(double *pos, double *vel, pso_settings_t *settings);
+        void position_limit(float *pos, float *vel, pso_settings_t *settings);
         void pso_settings_free(pso_settings_t *settings);
-        void inform_random(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t * settings);
-        void inform_ring(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t * settings);
-        void inform_global(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t *settings);
-        void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b, int improved, pso_settings_t * settings);
+        void inform_random(int *comm, float **pos_nb, float **pos_b, float *fit_b, float *gbest, int improved, pso_settings_t * settings);
+        void inform_ring(int *comm, float **pos_nb, float **pos_b, float *fit_b, float *gbest, int improved, pso_settings_t * settings);
+        void inform_global(int *comm, float **pos_nb, float **pos_b, float *fit_b, float *gbest, int improved, pso_settings_t *settings);
+        void inform(int *comm, float **pos_nb, float **pos_b, float *fit_b, int improved, pso_settings_t * settings);
         void init_comm_ring(int *comm, pso_settings_t * settings);
         void init_comm_random(int *comm, pso_settings_t * settings);
         void get_edgepoint(const strategy::EdgePointList &msg);

@@ -5,7 +5,7 @@
 //                  BENCHMARK FUNCTIONS
 //==============================================================
 
-double pso_sphere(double *pos, int dim, void *params, bool posInObs) {
+double pso_sphere(float *pos, int dim, void *params, bool posInObs) {
 
     // double sum = 0;
     // int i;
@@ -191,7 +191,7 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
         }
 
         // set some general PSO settings
-        settings->goal = 1e-5;
+        settings->goal = 0.03;//1e-2;
         // settings->size = 30;
         settings->nhood_strategy = PSO_NHOOD_RING;
         settings->nhood_size = 10;
@@ -200,7 +200,7 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
         // initialize GBEST solution
         pso_result_t solution;
         // allocate memory for the best position buffer
-            solution.gbest = (double *)malloc(settings->dim * sizeof(double));
+            solution.gbest = (float *)malloc(settings->dim * sizeof(float));
 
         // printf("(dim=%d, swarm size=%d)\n", settings->dim, settings->size);
         // sleep(2);

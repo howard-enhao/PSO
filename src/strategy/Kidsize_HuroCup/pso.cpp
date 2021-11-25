@@ -153,9 +153,9 @@ double PSO::calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 //          NEIGHBORHOOD (COMM) MATRIX STRATEGIES
 //==============================================================
 // global neighborhood
-void PSO::inform_global(int *comm, double **pos_nb,
-		   double **pos_b, double *fit_b,
-		   double *gbest, int improved,
+void PSO::inform_global(int *comm, float **pos_nb,
+		   float **pos_b, float *fit_b,
+		   float *gbest, int improved,
 		   pso_settings_t *settings)
 {
 
@@ -164,7 +164,7 @@ void PSO::inform_global(int *comm, double **pos_nb,
     // copy the contents of gbest to pos_nb
     for (i=0; i<settings->size; i++)
         memmove((void *)pos_nb[i], (void *)gbest,
-                sizeof(double) * settings->dim);
+                sizeof(float) * settings->dim);
 
 }
 
@@ -172,7 +172,7 @@ void PSO::inform_global(int *comm, double **pos_nb,
 // general inform function :: according to the connectivity
 // matrix COMM, it copies the best position (from pos_b) of the
 // informers of each particle to the pos_nb matrix
-void PSO::inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
+void PSO::inform(int *comm, float **pos_nb, float **pos_b, float *fit_b,
 	    int improved, pso_settings_t * settings)
 {
     int i, j;
@@ -190,7 +190,7 @@ void PSO::inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
         // copy pos_b of b_n^th particle to pos_nb[j]
         memmove((void *)pos_nb[j],
                 (void *)pos_b[b_n],
-                sizeof(double) * settings->dim);
+                sizeof(float) * settings->dim);
     }
 }
 
@@ -230,9 +230,9 @@ void PSO::init_comm_ring(int *comm, pso_settings_t * settings)
 
 }
 
-void PSO::inform_ring(int *comm, double **pos_nb,
-		 double **pos_b, double *fit_b,
-		 double *gbest, int improved,
+void PSO::inform_ring(int *comm, float **pos_nb,
+		 float **pos_b, float *fit_b,
+		 float *gbest, int improved,
 		 pso_settings_t * settings)
 {
 
@@ -264,9 +264,9 @@ void PSO::init_comm_random(int *comm, pso_settings_t * settings)
     }
 }
 
-void PSO::inform_random(int *comm, double **pos_nb,
-		   double **pos_b, double *fit_b,
-		   double *gbest, int improved,
+void PSO::inform_random(int *comm, float **pos_nb,
+		   float **pos_b, float *fit_b,
+		   float *gbest, int improved,
 		   pso_settings_t * settings)
 {
 
@@ -328,22 +328,22 @@ void PSO::pso_settings_free(pso_settings_t *settings) {
     free(settings);
 }
 
-double **pso_matrix_new(int size, int dim) {
-    double **m = (double **)malloc(size * sizeof(double *));
+float **pso_matrix_new(int size, int dim) {
+    float **m = (float **)malloc(size * sizeof(float *));
     for (int i=0; i<size; i++) {
-        m[i] = (double *)malloc(dim * sizeof(double));
+        m[i] = (float *)malloc(dim * sizeof(float));
     }
     return m;
 }
 
-void PSO::pso_matrix_free(double **m, int size) {
+void PSO::pso_matrix_free(float **m, int size) {
     for (int i=0; i<size; i++) {
         free(m[i]);
     }
     free(m);
 }
 
-void PSO::position_limit(double *pos, double *vel, pso_settings_t *settings) {
+void PSO::position_limit(float *pos, float *vel, pso_settings_t *settings) {
     // clamp position within bounds?
     // if (settings->clamp_pos) {
     //     if (pos < settings->range_lo-foot_area[d*2]) {
@@ -387,13 +387,13 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     strategy::particle msg_accel;
     strategy::solution solution_msg;
     // Particles
-    double **pos = pso_matrix_new(settings->size, settings->dim); // position matrix
-    double **vel = pso_matrix_new(settings->size, settings->dim); // velocity matrix
-    double **pos_b = pso_matrix_new(settings->size, settings->dim); // best position matrix
+    float **pos = pso_matrix_new(settings->size, settings->dim); // position matrix
+    float **vel = pso_matrix_new(settings->size, settings->dim); // velocity matrix
+    float **pos_b = pso_matrix_new(settings->size, settings->dim); // best position matrix
     double *fit = (double *)malloc(settings->size * sizeof(double));
-    double *fit_b = (double *)malloc(settings->size * sizeof(double));
+    float *fit_b = (float *)malloc(settings->size * sizeof(float));
     // Swarm
-    double **pos_nb = pso_matrix_new(settings->size, settings->dim); // what is best informed
+    float **pos_nb = pso_matrix_new(settings->size, settings->dim); // what is best informed
     // position for each particle
     int *comm = (int *)malloc(settings->size * settings->size * sizeof(int));
     // rows : those who inform
@@ -402,8 +402,8 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     // the last iteration
 
     int i, d, step;
-    double a, b; // for matrix initialization
-    double rho1, rho2; // random numbers (coefficients)
+    float a, b; // for matrix initialization
+    float rho1, rho2; // random numbers (coefficients)
     // initialize omega using standard value
     double w = 1;//0.9;
     inform_fun_t inform_fun = NULL; // neighborhood update function
@@ -452,7 +452,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     //     }
 
     // INITIALIZE SOLUTION
-    solution->error = DBL_MAX;
+    solution->error = FLT_MAX;
 
     // SWARM INITIALIZATION
     // for each particle
@@ -559,6 +559,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             // if (settings->print_every)
                 gettimeofday(&tend, NULL);
                 Periodtime  = (1000000*(tend.tv_sec - tstart.tv_sec) + (tend.tv_usec - tstart.tv_usec))/1000;//算週期
+                cout<<"solution->error <= settings->goal"<<endl;
                 printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
                 ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
                 ROS_INFO("timeuse = %f", Periodtime);
@@ -567,7 +568,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             break;
         }
         // update pos_nb matrix (find best of neighborhood for all particles)
-        (this->*inform_fun)(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest, improved, settings);
+        (this->*inform_fun)(comm, (float **)pos_nb, (float **)pos_b, fit_b, solution->gbest, improved, settings);
         // the value of improved was just used; reset it
         improved = 0;
         
@@ -682,10 +683,10 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 
         // if (settings->print_every && (step % settings->print_every == 0))
         //     printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);
-
+        cout<<"goal = "<<settings->goal<<" error = "<<solution->error<<endl;
     }
-    // gettimeofday(&tend, NULL);
-    //             Periodtime  = (1000000*(tend.tv_sec - tstart.tv_sec) + (tend.tv_usec - tstart.tv_usec))/1000;//算週期
+    gettimeofday(&tend, NULL);
+    Periodtime  = (1000000*(tend.tv_sec - tstart.tv_sec) + (tend.tv_usec - tstart.tv_usec))/1000;//算週期
     printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
     ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
     ROS_INFO("timeuse = %f", Periodtime);
