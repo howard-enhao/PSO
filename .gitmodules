@@ -1,6 +1,6 @@
 [submodule "interface"]
 	path = interface
-	url = https://github.com/TKUICLab-humanoid/hurocup_interface_submodule.git
+	url = https://github.com/TKUICLab-humanoid/robocup_interface_submodule.git
 	branch = master
 [submodule "src/walkinggait"]
 	path = src/walkinggait
@@ -26,3 +26,12 @@
 	path = src/imageprocess
 	url = https://github.com/TKUICLab-humanoid/imageprocess_submodule.git
 	branch = master
+[submodule "src/localization"]
+	path = src/localization
+	url = https://github.com/TKUICLab-humanoid/localization_submodule.git
+[submodule "src/realsense-ros"]
+	path = src/realsense-ros
+	url = https://github.com/TKUICLab-humanoid/realsense-ros_submodule.git
+[submodule "src/vision"]
+	path = src/vision
+	url = https://github.com/TKUICLab-humanoid/vision_submodule.git
