@@ -137,13 +137,14 @@ class PSO
         void init_comm_ring(int *comm, pso_settings_t * settings);
         void init_comm_random(int *comm, pso_settings_t * settings);
         void get_edgepoint(const strategy::EdgePointList &msg);
-        void show_image(const vector<Point3i>& c,  int radius, bool* InRegion, int step);
+        void show_image(const vector<Point3i>& c,  int radius, bool* InRegion, int step, int gx, int gy);
         // double pso_sphere(double *pos, int dim, void *params);
         // pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate);
         static double sum_objective_function;
         vector<vector<Point3i>> edgepoint_list;
         vector<Point3i> edge_point;
         sensor_msgs::ImagePtr edgeimage_msg;
+        int gx, gy;
     private:
         ros::NodeHandle nh;
 		ros::Subscriber edgepoint_subscriber;

@@ -169,6 +169,7 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
 {
     if(get_obs && now_step != pre_step)
     {
+        cout<<"qq"<<endl;
         if(init)
         {
             for(int i = 0; i<4; i++)
@@ -204,7 +205,7 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
 
         // printf("(dim=%d, swarm size=%d)\n", settings->dim, settings->size);
         // sleep(2);
-
+        cout<<"ww"<<endl;
         // run optimization algorithm
         pso_fun->pso_solve(obj_fun, NULL, &solution, settings, nh);
 

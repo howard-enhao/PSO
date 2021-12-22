@@ -95,10 +95,10 @@ void PSO::get_edgepoint(const strategy::EdgePointList &msg)
     
 }
 
-void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int step)
+void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int step, int gx, int gy)
 {
-    // Mat img = imread("/home/iclab/Desktop/PSO/finalimage.png");
-    Mat img = imread("/home/ching/git/PSO/finalimage.png");
+    Mat img = imread("/home/iclab/Desktop/PSO/finalimage.png");
+    // Mat img = imread("/home/ching/git/PSO/finalimage.png");
     Mat Contours=Mat::zeros(img.size(),CV_8UC3);
     Mat final_img;
     for(int i = 0; i < c.size(); ++i)
@@ -114,11 +114,11 @@ void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int s
     edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", final_img).toImageMsg();
     edgeimage_Publisher.publish(edgeimage_msg);
     // imshow("img", final_img);
-    char path[50] = "/home/ching/git/test_img/final_";
-    string temp_str = to_string(step);
-    char const* step_num= temp_str.c_str();
-    strcat(path, step_num);
-    strcat(path, ".png");
+    // char path[50] = "/home/ching/git/test_img/final_";
+    // string temp_str = to_string(step);
+    // char const* step_num= temp_str.c_str();
+    // strcat(path, step_num);
+    // strcat(path, ".png");
     // imwrite(path, final_img);
     // waitKey(500);
 }
@@ -378,6 +378,8 @@ void PSO::position_limit(float *pos, float *vel, pso_settings_t *settings) {
 void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 	       pso_result_t *solution, pso_settings_t *settings, ros::NodeHandle nh)
 {
+
+    cout<<"EE"<<endl;
     // namedWindow("img");
     // waitKey(3000);
     struct timeval tstart, tend;
@@ -453,7 +455,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 
     // INITIALIZE SOLUTION
     solution->error = FLT_MAX;
-
+    cout<<"RR"<<endl;
     // SWARM INITIALIZATION
     // for each particle
     for (i=0; i<settings->size; i++) {
@@ -531,7 +533,9 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         
         
     }
-    show_image(cpoint, 15, &posInObs[0], 0);
+    gx = solution->gbest[0];
+    gy = solution->gbest[1];
+    show_image(cpoint, 15, &posInObs[0], 0, gx, gy);
     memset(posInObs, 0, settings->size * sizeof(bool));
     cpoint.clear();
     msg_accel.cnt=settings->size;
@@ -666,7 +670,9 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             
             
         }
-        show_image(cpoint, 15, &posInObs[0], step+1);
+        gx = solution->gbest[0];
+        gy = solution->gbest[1];
+        show_image(cpoint, 15, &posInObs[0], step+1, gx, gy);
         memset(posInObs, 0, settings->size * sizeof(bool));
         cpoint.clear();
 
