@@ -42,7 +42,7 @@ class Edge_detection
         Edge_detection(ros::NodeHandle &nh)
         {
             strategy_info = StrategyInfoInstance::getInstance();
-            Imagesource_subscriber = nh.subscribe("/usb_cam/image_raw", 10, &Edge_detection::Catch_image, this);
+            Imagesource_subscriber = nh.subscribe("/vision/object_image", 10, &Edge_detection::Catch_image, this);
             image_transport::ImageTransport it(nh);
             edgeimage_Publisher = it.advertise("edge_image", 1);
             Computational_geometry = Computational_geometryInstance::getInstance();

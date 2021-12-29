@@ -708,7 +708,7 @@
 			myAddress = document.getElementById("addressSelect").value;
 			console.log("Connecting address is", myAddress)
 			ros.connect("ws://" + myAddress + ":9090");
-			document.getElementById("orign_image").src = "http://" + myAddress + ":8080/stream?topic=/orign_image";
+			document.getElementById("orign_image").src = "http://" + myAddress + ":8080/stream?topic=/vision/object_image";
 			document.getElementById("color_image").src = "http://" + myAddress + ":8080/stream?topic=/edge_image";
 		}
 		
