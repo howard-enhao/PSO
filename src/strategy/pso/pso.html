@@ -83,6 +83,15 @@
 			display: inline;
 		}
 
+		#div_edge_image {
+			width: 320px;
+			height: 240px;
+			border: 1px #FFF solid;
+			margin: 10px 10px 30px 10px;
+			float: left;
+			display: inline;
+		}
+
 		#select {
 			width: 160px;
 			height: 180px;
@@ -709,7 +718,8 @@
 			console.log("Connecting address is", myAddress)
 			ros.connect("ws://" + myAddress + ":9090");
 			document.getElementById("orign_image").src = "http://" + myAddress + ":8080/stream?topic=/vision/object_image";
-			document.getElementById("color_image").src = "http://" + myAddress + ":8080/stream?topic=/edge_image";
+			document.getElementById("color_image").src = "http://" + myAddress + ":8080/stream?topic=/final_image";
+			document.getElementById("edge_image").src = "http://" + myAddress + ":8080/stream?topic=edge_image";
 		}
 		
 		function showCamBrightness(newValue) {
@@ -2231,6 +2241,9 @@
 			</div>
 			<div id="div_color_image">
 				<img id="color_image" style="-webkit-user-select: none; display:inline;" src="http://172.17.121.10:8080/stream?topic=/colormodel_image">
+			</div>
+			<div id="div_edge_image">
+				<img id="edge_image" style="-webkit-user-select: none; display:inline;" src="http://172.17.121.10:8080/stream?topic=/colormodel_image">
 			</div>
 			
 

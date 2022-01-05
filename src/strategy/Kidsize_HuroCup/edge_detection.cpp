@@ -86,135 +86,136 @@ void Edge_detection::strategymain()
             reachable_region.Width = 120;
             reachable_region.Height = 139;
         }
-        if(pre_now_step != now_step)
-        {
-        Rect rect(reachable_region.x, reachable_region.y, reachable_region.Width, reachable_region.Height);
-        Mat ROI = orign_img(rect);
+        // if(pre_now_step != now_step)
+        // {
+            Rect rect(reachable_region.x, reachable_region.y, reachable_region.Width, reachable_region.Height);
+            Mat ROI = orign_img(rect);
 
-        erode(orign_img, orign_img, Mat());
-        dilate(orign_img, orign_img, Mat());
+            erode(orign_img, orign_img, Mat());
+            dilate(orign_img, orign_img, Mat());
 
-        GaussianBlur(orign_img, orign_img, Size(17,17),1);
-        Canny(orign_img, edge, 80, 240, 3);
-        Reachable_region_pub.publish(reachable_region);
-        // cvtColor(edge, frame, cv::COLOR_GRAY2BGR);
-        // edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
-        // edgeimage_Publisher.publish(edgeimage_msg);
+            GaussianBlur(orign_img, orign_img, Size(17,17),1);
+            Canny(orign_img, edge, 80, 240, 3);
+            Reachable_region_pub.publish(reachable_region);
+            // cvtColor(edge, frame, cv::COLOR_GRAY2BGR);
+            // edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
+            // edgeimage_Publisher.publish(edgeimage_msg);
 
-        // string edge_type =  type2str( edge.type() );
-        // printf("Matrix: %s %dx%d \n\n\n\n", edge_type.c_str(), edge.cols, edge.rows );
+            // string edge_type =  type2str( edge.type() );
+            // printf("Matrix: %s %dx%d \n\n\n\n", edge_type.c_str(), edge.cols, edge.rows );
 
-        vector<Point3i> edge_point;
+            vector<Point3i> edge_point;
 
-        /*  繪製原始輪廓與顯示輪廓點集 */
-        // vector<vector<Point>> contours;
-        // vector<Vec4i> hierarchy;
-        // findContours(edge,contours,hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,Point());
-        // Mat imageContours=Mat::zeros(edge.size(),CV_8UC1);
-        // Mat Contours=Mat::zeros(edge.size(),CV_8UC1);
-        
-
-        /*  縮小物件輪廓 */
-        vector<vector<Point>> ring_contours;
-        vector<Vec4i> ring_hierarchy;
-        Mat ROI_frame;
-        Mat dist=Mat::zeros(edge.size(),CV_32FC1);
-        Mat Shrink=Mat::zeros(edge.size(),CV_8UC1);
-        Mat ring = Mat::zeros(edge.size(),CV_8UC1);
-        cvtColor(ROI, ROI_frame, cv::COLOR_BGR2GRAY);
-        Mat edge_1;
-        Canny(ROI_frame, edge_1, 50, 150, 3);
-        // imshow("edge", ROI_frame);
-        // imshow("edge_1", edge_1);
-        // waitKey(30);
-        edge_1 = ~edge_1;
-        // ROI_frame = ~ROI_frame;
-        Mat temp = frame_img(rect);
-        // ROI_frame.copyTo(temp);
-        edge_1.copyTo(temp);
-        distanceTransform(frame_img, dist, DIST_L2, DIST_MASK_PRECISE);
-        inRange(dist, 9, 10, ring);
-        threshold(ring, ring, 1, 255, CV_THRESH_BINARY);
-        findContours(ring,ring_contours,ring_hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,Point());
-        
-        strategy::EdgePointList edgepointlist;
-        for(int i=0;i<ring_contours.size();i++)
-        {
-            bool PointWithinObs = false;
-            int InObs = -1;
-            bool CCRisInObs = false;
-            geometry_msgs::Point32 point;
-            strategy::EdgePointArray polygon;
+            /*  繪製原始輪廓與顯示輪廓點集 */
+            // vector<vector<Point>> contours;
+            // vector<Vec4i> hierarchy;
+            // findContours(edge,contours,hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,Point());
+            // Mat imageContours=Mat::zeros(edge.size(),CV_8UC1);
+            // Mat Contours=Mat::zeros(edge.size(),CV_8UC1);
             
-            // contours[i]代表的是第i個輪廓，contours[i].size()代表的是第i個輪廓上所有的像素點數
-            // for(int j=0;j<contours[i].size();j++) 
-            // {
-            //     // 繪製出contours向量內所有的像素點
-            //     Point P=Point(contours[i][j].x,contours[i][j].y);
-            //     Contours.at<uchar>(P)=255;
-            //     // edge_point.push_back(Point3i(contours[i][j].x,contours[i][j].y, 0));
-            //     printf("(i,j) = (%d, %d) , (x,y) = (%d, %d)\n", i, j, contours[i][j].x, contours[i][j].y);
-            
-            // }
 
-            for(int j=0;j<ring_contours[i].size();j++) 
+            /*  縮小物件輪廓 */
+            vector<vector<Point>> ring_contours;
+            vector<Vec4i> ring_hierarchy;
+            Mat ROI_frame;
+            Mat dist=Mat::zeros(edge.size(),CV_32FC1);
+            Mat Shrink=Mat::zeros(edge.size(),CV_8UC1);
+            Mat ring = Mat::zeros(edge.size(),CV_8UC1);
+            cvtColor(ROI, ROI_frame, cv::COLOR_BGR2GRAY);
+            Mat edge_1;
+            Canny(ROI_frame, edge_1, 50, 150, 3);
+            // imshow("edge", ROI_frame);
+            // imshow("edge_1", edge_1);
+            // waitKey(30);
+            edge_1 = ~edge_1;
+            // ROI_frame = ~ROI_frame;
+            Mat temp = frame_img(rect);
+            // ROI_frame.copyTo(temp);
+            edge_1.copyTo(temp);
+            distanceTransform(frame_img, dist, DIST_L2, DIST_MASK_PRECISE);
+            inRange(dist, 9, 10, ring);
+            threshold(ring, ring, 1, 255, CV_THRESH_BINARY);
+            findContours(ring,ring_contours,ring_hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,Point());
+            
+            strategy::EdgePointList edgepointlist;
+            for(int i=0;i<ring_contours.size();i++)
             {
-                edge_point.push_back(Point3i(ring_contours[i][j].x,ring_contours[i][j].y, 0));  //將shrink的邊緣點存入edge_point
-                printf("ring_(i,j) = (%d, %d) , (x,y) = (%d, %d)\n", i, j, ring_contours[i][j].x, ring_contours[i][j].y);
-                point.x = ring_contours[i][j].x;
-                point.y = ring_contours[i][j].y;
-                point.z = 0;
-                polygon.points.push_back(point);
-                // printf("%f, %f, %f\n", point.x, point.y, point.z);
-            }
-            // printf("size = %d \n", polygon.points.size());
-            bool enough_space_flag;
-            enough_space_flag = Computational_geometry->areaOfPolygon(edge_point);
-            if(enough_space_flag)
-                edgepointlist.Edgepointlist.push_back(polygon);
-            polygon.points.clear();
-            // 輸出hierarchy向量内容
-            char ch[256];
-            sprintf(ch,"%d",i);
-            string str=ch;
-            cout<<"向量hierarchy的第" <<str<<" 個元素内容為："<<ring_hierarchy[i]<<endl<<endl;
-            printf("\nok = %d\n", Computational_geometry->areaOfPolygon(edge_point));
-            // printf("point  %d\n", Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0)));
-            // printf("point = %d\n", Computational_geometry->isCircleInPolygon(edge_point, Point3i(200, 120, 0), 5));
-            // CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(220, 188, 0), 15);
-            // PointWithinObs = Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0));
-            edge_point.clear();
+                bool PointWithinObs = false;
+                int InObs = -1;
+                bool CCRisInObs = false;
+                geometry_msgs::Point32 point;
+                strategy::EdgePointArray polygon;
+                
+                // contours[i]代表的是第i個輪廓，contours[i].size()代表的是第i個輪廓上所有的像素點數
+                // for(int j=0;j<contours[i].size();j++) 
+                // {
+                //     // 繪製出contours向量內所有的像素點
+                //     Point P=Point(contours[i][j].x,contours[i][j].y);
+                //     Contours.at<uchar>(P)=255;
+                //     // edge_point.push_back(Point3i(contours[i][j].x,contours[i][j].y, 0));
+                //     printf("(i,j) = (%d, %d) , (x,y) = (%d, %d)\n", i, j, contours[i][j].x, contours[i][j].y);
+                
+                // }
 
-            // drawContours(imageContours,contours,i,Scalar(255),1,8,hierarchy);    // 繪製輪廓
-            if(enough_space_flag)
-                drawContours(Shrink,ring_contours,i,Scalar(255),1,8,ring_hierarchy);    // 繪製輪廓
-            
-            if(PointWithinObs || CCRisInObs)
-            {
-                InObs = stoi(str);
-                printf("可踏步在第 %d 個障礙物內\n", InObs);
-                // break;
+                for(int j=0;j<ring_contours[i].size();j++) 
+                {
+                    edge_point.push_back(Point3i(ring_contours[i][j].x,ring_contours[i][j].y, 0));  //將shrink的邊緣點存入edge_point
+                    printf("ring_(i,j) = (%d, %d) , (x,y) = (%d, %d)\n", i, j, ring_contours[i][j].x, ring_contours[i][j].y);
+                    point.x = ring_contours[i][j].x;
+                    point.y = ring_contours[i][j].y;
+                    point.z = 0;
+                    polygon.points.push_back(point);
+                    // printf("%f, %f, %f\n", point.x, point.y, point.z);
+                }
+                // printf("size = %d \n", polygon.points.size());
+                bool enough_space_flag;
+                enough_space_flag = Computational_geometry->areaOfPolygon(edge_point);
+                if(enough_space_flag)
+                    edgepointlist.Edgepointlist.push_back(polygon);
+                polygon.points.clear();
+                // 輸出hierarchy向量内容
+                char ch[256];
+                sprintf(ch,"%d",i);
+                string str=ch;
+                cout<<"向量hierarchy的第" <<str<<" 個元素内容為："<<ring_hierarchy[i]<<endl<<endl;
+                printf("\nok = %d\n", Computational_geometry->areaOfPolygon(edge_point));
+                // printf("point  %d\n", Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0)));
+                // printf("point = %d\n", Computational_geometry->isCircleInPolygon(edge_point, Point3i(200, 120, 0), 5));
+                // CCRisInObs = Computational_geometry->isCircleInPolygon(edge_point, Point3i(220, 188, 0), 15);
+                // PointWithinObs = Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0));
+                edge_point.clear();
+
+                // drawContours(imageContours,contours,i,Scalar(255),1,8,hierarchy);    // 繪製輪廓
+                if(enough_space_flag)
+                    drawContours(Shrink,ring_contours,i,Scalar(255),1,8,ring_hierarchy);    // 繪製輪廓
+                
+                if(PointWithinObs || CCRisInObs)
+                {
+                    InObs = stoi(str);
+                    printf("可踏步在第 %d 個障礙物內\n", InObs);
+                    // break;
+                }
+                cout<<endl<<endl<<endl;
             }
-            cout<<endl<<endl<<endl;
-        }
-        edgepoint_pub.publish(edgepointlist);
-        edgepointlist.Edgepointlist.clear();
-        addWeighted(Shrink, 1, edge, 0.3, 0, Shrink);  //合成edgeimg與shrinkimg
-        rectangle(Shrink, rect, Scalar(200), 1, 8, 0);
-        // imshow("dist", dist);
-        // imshow("ring", ring);
-        // imshow("Shrink", Shrink);  //縮小後的輪廓
-        // imshow("Contours Image",imageContours); //輪廓
-        // imshow("Point of Contours",Contours);   //向量contours内保存的所有輪廓點集
-        waitKey(30);
-        imwrite("/home/iclab/Desktop/PSO/finalimage.png", Shrink);
-        // imwrite("/home/ching/git/PSO/finalimage.png", Shrink);
-        cvtColor(Shrink, frame, cv::COLOR_GRAY2BGR);
-        edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
-        // edgeimage_Publisher.publish(edgeimage_msg);
-        for(int i = 0;i<100000000; i++);
-        pre_now_step = now_step;
-        }
+            edgepoint_pub.publish(edgepointlist);
+            edgepointlist.Edgepointlist.clear();
+            addWeighted(Shrink, 1, edge, 0.3, 0, Shrink);  //合成edgeimg與shrinkimg
+            rectangle(Shrink, rect, Scalar(200), 1, 8, 0);
+            // imshow("dist", dist);
+            // imshow("ring", ring);
+            // imshow("Shrink", Shrink);  //縮小後的輪廓
+            // imshow("Contours Image",imageContours); //輪廓
+            // imshow("Point of Contours",Contours);   //向量contours内保存的所有輪廓點集
+            waitKey(30);
+            // imwrite("/home/iclab/Desktop/PSO/finalimage.png", Shrink);
+            imwrite("/home/ching/git/PSO/finalimage.png", Shrink);
+            cvtColor(Shrink, frame, cv::COLOR_GRAY2BGR);
+            edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
+            
+            for(int i = 0;i<100000000; i++);
+            pre_now_step = now_step;
+        // }
+        edgeimage_Publisher.publish(edgeimage_msg);
     }
     checkImageSource = false;
 }

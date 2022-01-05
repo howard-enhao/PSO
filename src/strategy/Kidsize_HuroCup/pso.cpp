@@ -31,7 +31,7 @@ void PSO::initialize()
     edgepoint_subscriber = nh.subscribe("/edgepoint_Topic", 10, &PSO::get_edgepoint, this);
         image_transport::ImageTransport it(nh);
         // image_transport::Publisher edgeimage_Publisher;
-        edgeimage_Publisher = it.advertise("edge_image", 1, this);
+        edgeimage_Publisher = it.advertise("final_image", 1, this);
     Computational_geometry = Computational_geometryInstance::getInstance();
 }
 // double PSO::pso_sphere(double *pos, int dim, void *params) {
@@ -379,7 +379,6 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 	       pso_result_t *solution, pso_settings_t *settings, ros::NodeHandle nh)
 {
 
-    cout<<"EE"<<endl;
     // namedWindow("img");
     // waitKey(3000);
     struct timeval tstart, tend;
@@ -455,7 +454,6 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 
     // INITIALIZE SOLUTION
     solution->error = FLT_MAX;
-    cout<<"RR"<<endl;
     // SWARM INITIALIZATION
     // for each particle
     for (i=0; i<settings->size; i++) {
@@ -547,7 +545,6 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     solution_pub.publish(solution_msg);
     // for(int i = 0;i<100000000; i++);
     // sleep(3);
-    
     // RUN ALGORITHM
     for (step=0; step<settings->steps; step++) {
         // update current step
