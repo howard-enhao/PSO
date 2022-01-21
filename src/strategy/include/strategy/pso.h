@@ -60,6 +60,8 @@
 #include <image_transport/image_transport.h>
 #include "sensor_msgs/Image.h"
 #include <sensor_msgs/image_encodings.h>
+
+#include "FeatureDistance/FeatureDistance.h"
 using namespace cv;
 
 using namespace std;
@@ -115,13 +117,13 @@ typedef void (PSO::*inform_fun_t)(int *comm, float **pos_nb,
 // function type for the different inertia calculation functions
 typedef double (PSO::*inertia_fun_t)(int step, pso_settings_t *settings);
 
-class PSO
+class PSO : public FeatureDistance
 {
     public:
         PSO();
         ~PSO();
         void initialize();
-        
+        // FeatureDistanceInstance *FeatureDistance;
         // typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
         int pso_calc_swarm_size(int dim);
         double calc_inertia_lin_dec(int step, pso_settings_t *settings);
@@ -136,6 +138,8 @@ class PSO
         void inform(int *comm, float **pos_nb, float **pos_b, float *fit_b, int improved, pso_settings_t * settings);
         void init_comm_ring(int *comm, pso_settings_t * settings);
         void init_comm_random(int *comm, pso_settings_t * settings);
+        void GetIMUData(const geometry_msgs::Vector3Stamped &msg);
+        void DepthCallback(const sensor_msgs::ImageConstPtr& depth_img);
         void get_edgepoint(const strategy::EdgePointList &msg);
         void show_image(const vector<Point3i>& c,  int radius, bool* InRegion, int step, int gx, int gy);
         // double pso_sphere(double *pos, int dim, void *params);
@@ -147,11 +151,14 @@ class PSO
         int gx, gy;
     private:
         ros::NodeHandle nh;
+        ros::Subscriber GetIMUData_Subscriber;
+        ros::Subscriber Depthimage_subscriber;
 		ros::Subscriber edgepoint_subscriber;
         image_transport::Publisher edgeimage_Publisher;
         // edgeimage_Publisher = it.advertise("edge_image", 1, this);
     protected:
         Computational_geometryInstance *Computational_geometry;
+        // FeatureDistanceInstance *FeatureDistance;
 };
 
 class PSO_geometryInstance : public PSO

@@ -28,12 +28,55 @@ PSO::~PSO()
 
 void PSO::initialize()
 {
+    Depthimage_subscriber = nh.subscribe("/camera/aligned_depth_to_color/image_raw", 1, &PSO::DepthCallback,this);
+    GetIMUData_Subscriber = nh.subscribe("/imu/rpy/filtered", 10, &PSO::GetIMUData,this);
     edgepoint_subscriber = nh.subscribe("/edgepoint_Topic", 10, &PSO::get_edgepoint, this);
         image_transport::ImageTransport it(nh);
         // image_transport::Publisher edgeimage_Publisher;
         edgeimage_Publisher = it.advertise("final_image", 1, this);
     Computational_geometry = Computational_geometryInstance::getInstance();
+    // FeatureDistance = FeatureDistanceInstance::getInstance();
+    RealsenseIMUData = {0.0,0.0,0.0};
 }
+
+void PSO::GetIMUData(const geometry_msgs::Vector3Stamped &msg)
+{
+    try
+    {
+        RealsenseIMUData[0] = msg.vector.x;
+        RealsenseIMUData[1] = msg.vector.y;
+        RealsenseIMUData[2] = msg.vector.z;
+        // ROS_INFO("r = %f, p = %f, y = %f",RealsenseIMUData[0],RealsenseIMUData[1],RealsenseIMUData[2]);
+              
+    }catch(...)
+    {
+      ROS_INFO("No IMU Data");
+      return;
+    }
+}
+
+void PSO::DepthCallback(const sensor_msgs::ImageConstPtr& depth_img) 
+{
+    cv_bridge::CvImagePtr cv_depth_ptr;
+    try
+    {
+        cv_depth_ptr = cv_bridge::toCvCopy(depth_img, sensor_msgs::image_encodings::TYPE_16UC1);
+        depth_buffer = cv_depth_ptr->image;
+        cv::Size dst_sz(depth_buffer.cols,depth_buffer.rows);
+        cv::Point2f center(dst_sz.height/2,dst_sz.width/2);
+        cv::Mat rot_mat = cv::getRotationMatrix2D(center, 1 * (RealsenseIMUData[1]), 1.0);
+        cv::warpAffine(depth_buffer, depth_buffer, rot_mat, dst_sz);
+        resize(depth_buffer, depth_buffer, cv::Size(640, 480));
+        //   imshow("depth_buffer",depth_buffer);
+    }
+    catch (cv_bridge::Exception& e)
+    {
+      ROS_ERROR("DepthCallback cv_bridge exception: %s", e.what());
+      return;
+    }
+    // cout << "image data(240, 320): " << (depth_buffer.at<uint16_t>(240, 320))*0.1 <<" cm" << endl;//獲取圖像坐標240,320的深度值,單位是公分
+}
+
 // double PSO::pso_sphere(double *pos, int dim, void *params) {
 
 //     // double sum = 0;
@@ -693,6 +736,8 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
     ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
     ROS_INFO("timeuse = %f", Periodtime);
+    Distance distance;
+    distance = measure((int)solution->gbest[0]*2, (int)solution->gbest[1]*2, CameraType::stereo);
     sleep(2);
                 // break;
     // free resources

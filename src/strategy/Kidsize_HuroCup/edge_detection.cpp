@@ -207,8 +207,8 @@ void Edge_detection::strategymain()
             // imshow("Contours Image",imageContours); //輪廓
             // imshow("Point of Contours",Contours);   //向量contours内保存的所有輪廓點集
             waitKey(30);
-            // imwrite("/home/iclab/Desktop/PSO/finalimage.png", Shrink);
-            imwrite("/home/ching/git/PSO/finalimage.png", Shrink);
+            imwrite("/home/iclab/Desktop/PSO/finalimage.png", Shrink);
+            // imwrite("/home/ching/git/PSO/finalimage.png", Shrink);
             cvtColor(Shrink, frame, cv::COLOR_GRAY2BGR);
             edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
             
