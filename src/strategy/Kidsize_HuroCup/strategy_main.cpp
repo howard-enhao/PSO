@@ -57,39 +57,39 @@ void KidsizeStrategy::Obstaclefreearea(const strategy::obstacle &msg)
         float obstacle_ymin = obstacle_y - obstacle_height/2;
         float obstacle_xmax = obstacle_x + obstacle_width/2;
         float obstacle_ymax = obstacle_y + obstacle_height/2;
-        ROS_INFO("NO.%d", i+1);
+        // ROS_INFO("NO.%d", i+1);
         
         if(obstacle_xmin<0 && obstacle_xmax>0 && obstacle_ymin<0 && obstacle_ymax>0)
         {
             obs_side = centor_side;
-            ROS_INFO("centor_side");
+            // ROS_INFO("centor_side");
         }
         else if(abs(obstacle_x-*(free_coordinate)) >= abs(obstacle_y-*(free_coordinate+1)) && obstacle_x-*(free_coordinate) > *(free_coordinate))
         {
             obs_side = right_side;
-            ROS_INFO("right_side");
+            // ROS_INFO("right_side");
         }
         else if(abs(obstacle_x-*(free_coordinate)) < abs(obstacle_y-*(free_coordinate+1)) && obstacle_y-*(free_coordinate+1) > *(free_coordinate))
         {
             obs_side = bottom_side;
-            ROS_INFO("bottom_side");
+            // ROS_INFO("bottom_side");
         }
         else if(abs(obstacle_x-*(free_coordinate)) >= abs(obstacle_y-*(free_coordinate+1)) && obstacle_x-*(free_coordinate) < *(free_coordinate))
         {
             obs_side = left_side;
-            ROS_INFO("left_side");
+            // ROS_INFO("left_side");
         }
         else if(abs(obstacle_x-*(free_coordinate)) < abs(obstacle_y-*(free_coordinate+1)) && obstacle_y-*(free_coordinate+1) < *(free_coordinate))
         {
             obs_side = top_side;
-            ROS_INFO("top_side");
+            // ROS_INFO("top_side");
         }
         else
         {
             obs_side = centor_side;
-            ROS_INFO("centor_side");
+            // ROS_INFO("centor_side");
         }
-        ROS_INFO("obs_x,y,w,h = %f, %f, %f, %f",obstacle_x, obstacle_y, obstacle_width, obstacle_height);
+        // ROS_INFO("obs_x,y,w,h = %f, %f, %f, %f",obstacle_x, obstacle_y, obstacle_width, obstacle_height);
         
         switch (obs_side)
         {
@@ -120,8 +120,8 @@ void KidsizeStrategy::Obstaclefreearea(const strategy::obstacle &msg)
             default:
                 break;
         }
-        ROS_INFO("free_min,max= %f, %f, %f, %f", free_limit[0], free_limit[1], free_limit[2], free_limit[3]);
-        ROS_INFO("free_x,y = %f, %f", *(free_coordinate), *(free_coordinate+1));
+        // ROS_INFO("free_min,max= %f, %f, %f, %f", free_limit[0], free_limit[1], free_limit[2], free_limit[3]);
+        // ROS_INFO("free_x,y = %f, %f", *(free_coordinate), *(free_coordinate+1));
 
         // sleep(1);
     }
@@ -167,60 +167,78 @@ int main(int argc, char **argv) {
 
 void KidsizeStrategy::strategymain(ros::NodeHandle nh)
 {
-    if(get_obs && now_step != pre_step)
-    {
-        if(init)
+    if(strategy_info->getStrategyStart())
+	{
+        if(!walk_in)
         {
-            for(int i = 0; i<4; i++)
-                freecoordinate.step_space.push_back(freelimit[i]);
-            pub_stepspace.publish(freecoordinate);
-            freecoordinate.step_space.clear();
-            init = false;
-            odd_step.data = true;
+            ros_com->sendBodyAuto(0, 0, 0, 0, WalkingMode::ContinuousStep,SensorMode::None);
+            tool->Delay(10);
+            walk_in = true;
         }
-        
+        if(now_step != pre_step)
+        {
+            if(init)
+            {
+                for(int i = 0; i<4; i++)
+                    freecoordinate.step_space.push_back(freelimit[i]);
+                pub_stepspace.publish(freecoordinate);
+                freecoordinate.step_space.clear();
+                init = false;
+                odd_step.data = true;
+            }
+            
 
-        pso_settings_t *settings = NULL;
-        pso_obj_fun_t obj_fun = NULL;
-        // handle the default case (no argument given)
-        if (obj_fun == NULL || settings == NULL) {
-            obj_fun = pso_sphere;
-            settings = pso_settings_new(2, &freelimit[0], &obs_coordinate[0]);
-            // settings = pso_settings_new(2, -100, 100);
-            printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n", settings->dim, settings->size);
+            pso_settings_t *settings = NULL;
+            pso_obj_fun_t obj_fun = NULL;
+            // handle the default case (no argument given)
+            if (obj_fun == NULL || settings == NULL) {
+                obj_fun = pso_sphere;
+                settings = pso_settings_new(2, &freelimit[0], &obs_coordinate[0]);
+                // settings = pso_settings_new(2, -100, 100);
+                printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n", settings->dim, settings->size);
+            }
+
+            // set some general PSO settings
+            settings->goal = 0.03;//1e-2;
+            // settings->size = 30;
+            settings->nhood_strategy = PSO_NHOOD_RING;
+            settings->nhood_size = 10;
+            settings->w_strategy = PSO_W_LIN_DEC;
+
+            // initialize GBEST solution
+            pso_result_t solution;
+            // allocate memory for the best position buffer
+                solution.gbest = (float *)malloc(settings->dim * sizeof(float));
+
+            // printf("(dim=%d, swarm size=%d)\n", settings->dim, settings->size);
+            // sleep(2);
+            // run optimization algorithm
+            pso_fun->pso_solve(obj_fun, NULL, &solution, settings, nh);
+
+            // free the gbest buffer
+            free(solution.gbest);
+
+            // free the settings
+            pso_fun->pso_settings_free(settings);
+            // get_obs = false;
+            if(odd_step.data)
+                odd_step.data = false;
+            else
+                odd_step.data = true;
+            stepcheck_pub.publish(odd_step);
+            // break;
+            // ros::shutdown();
+            // get_image = false;
+            pre_step = now_step;
         }
-
-        // set some general PSO settings
-        settings->goal = 0.03;//1e-2;
-        // settings->size = 30;
-        settings->nhood_strategy = PSO_NHOOD_RING;
-        settings->nhood_size = 10;
-        settings->w_strategy = PSO_W_LIN_DEC;
-
-        // initialize GBEST solution
-        pso_result_t solution;
-        // allocate memory for the best position buffer
-            solution.gbest = (float *)malloc(settings->dim * sizeof(float));
-
-        // printf("(dim=%d, swarm size=%d)\n", settings->dim, settings->size);
-        // sleep(2);
-        // run optimization algorithm
-        pso_fun->pso_solve(obj_fun, NULL, &solution, settings, nh);
-
-        // free the gbest buffer
-        free(solution.gbest);
-
-        // free the settings
-        pso_fun->pso_settings_free(settings);
-        // get_obs = false;
-        if(odd_step.data)
-            odd_step.data = false;
-        else
-            odd_step.data = true;
-        stepcheck_pub.publish(odd_step);
-        // break;
-        // ros::shutdown();
-        // get_image = false;
-        pre_step = now_step;
+    }
+    else
+    {
+        if(walk_in)
+        {
+            ros_com->sendBodyAuto(0, 0, 0, 0, WalkingMode::ContinuousStep,SensorMode::None);
+            tool->Delay(10);
+            walk_in = false;
+        }
     }
 }

@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include<iostream>
+#include "tku_libs/strategy_info.h"
+#include "tku_libs/TKU_tool.h"
+#include "tku_libs/RosCommunication.h"
+#include "tku_libs/WalkContinuouse.h"
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Bool.h>
@@ -28,6 +32,10 @@ class KidsizeStrategy
 	public:
 		KidsizeStrategy(ros::NodeHandle &nh) 
 		{
+			strategy_info = StrategyInfoInstance::getInstance();
+			tool = ToolInstance::getInstance();
+			ros_com = RosCommunicationInstance::getInstance();
+			// walk_con = WalkContinuouseInstance::getInstance();
 			pso_fun = PSO_geometryInstance::getInstance();
 			sub = nh.subscribe("/Obstaclefreearea_Topic", 100, &KidsizeStrategy::Obstaclefreearea, this);
 			pub_stepspace = nh.advertise<strategy::step_space>("/stepspace", 1);
@@ -36,8 +44,18 @@ class KidsizeStrategy
 		};
 		~KidsizeStrategy()
 		{
+			StrategyInfoInstance::deleteInstance();
+			ToolInstance::deleteInstance();
+			RosCommunicationInstance::deleteInstance();
+			WalkContinuouseInstance::deleteInstance();
 			// PSO_geometryInstance::deleteInstance();
 		};
+
+		StrategyInfoInstance *strategy_info;
+		ToolInstance *tool;
+		RosCommunicationInstance *ros_com;
+		// WalkContinuouseInstance *walk_con;
+		
 		// typedef double (*pso_obj_fun_t)(double *pos, int dim, void *params);
 		PSO_geometryInstance *pso_fun;
 		ros::Publisher pub_stepspace;
@@ -51,11 +69,12 @@ class KidsizeStrategy
 		strategy::step_space freecoordinate;
 		struct timeval tstart, tend;
 		double timeuse;
-		bool now_step = 1;
-		bool pre_step = 0;
+		int now_step = 999;
+		int pre_step = 999;
 		bool get_obs = false;
 		bool on_floor = false;
 		bool init = true;
+		bool walk_in = false;
 		std_msgs::Bool odd_step;
 		float obs_coordinate[2] = {0};
 		float free_limit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/

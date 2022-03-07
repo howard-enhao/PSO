@@ -31,6 +31,8 @@
 #include "strategy/EdgePointArray.h"
 #include "strategy/EdgePointList.h"
 #include "strategy/ReachableRegion.h"
+#include "std_msgs/Bool.h"
+
 using namespace std;
 using namespace cv;
 
@@ -49,6 +51,7 @@ class Edge_detection
             edgepoint_pub = nh.advertise<strategy::EdgePointList>("/edgepoint_Topic", 1);
             Reachable_region_pub = nh.advertise<strategy::ReachableRegion>("/ReachableRegion_Topic", 1);
             stepcheck_subscriber = nh.subscribe("/stepcheck", 1, &Edge_detection::stepcheck_callback, this);
+            FPGAack_subscriber = nh.subscribe("/package/footstepack", 1, &Edge_detection::Footstepack_callback, this);
         };
         ~Edge_detection(){};
 
@@ -56,6 +59,7 @@ class Edge_detection
         ros::Publisher edgepoint_pub;
         ros::Publisher Reachable_region_pub;
         ros::Subscriber stepcheck_subscriber;
+        ros::Subscriber FPGAack_subscriber;
         StrategyInfoInstance *strategy_info;
         Computational_geometryInstance *Computational_geometry;
         image_transport::Publisher edgeimage_Publisher;
@@ -64,13 +68,17 @@ class Edge_detection
         void strategymain();
         void Catch_image(const sensor_msgs::ImageConstPtr& msg);
         void stepcheck_callback(const std_msgs::Bool& msg);
+        void Footstepack_callback(const std_msgs::Bool& msg);
+        void initial();
         Mat edge;
         Mat orign_img;
         Mat frame;
         bool checkRealImage = false;
         bool checkImageSource = false;
-        bool now_step = true;
-        bool pre_now_step = false;
+        bool odd_step;
+        int now_step = 0;
+        int pre_now_step = 999;
+        bool Footstepack;
     // private:
 };
 

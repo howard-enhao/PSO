@@ -17,7 +17,12 @@ void Edge_detection::Catch_image(const sensor_msgs::ImageConstPtr& msg)
 
 void Edge_detection::stepcheck_callback(const std_msgs::Bool& msg)
 {
-    now_step = msg.data;
+    odd_step = msg.data;
+}
+
+void Edge_detection::Footstepack_callback(const std_msgs::Bool& msg)
+{
+    Footstepack = msg.data;
 }
 
 string type2str(int type)
@@ -44,6 +49,12 @@ string type2str(int type)
     return r;
 }
 
+void Edge_detection::initial()
+{
+    checkImageSource = false;
+    Footstepack = false;
+}
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "Edge_detection");
@@ -51,7 +62,7 @@ int main(int argc, char** argv)
     Edge_detection Edge_detection(nh);
 
     ros::Rate loop_rate(30);
-
+    Edge_detection.initial();
     while(nh.ok())
     {
         Edge_detection.strategymain();
@@ -63,14 +74,14 @@ int main(int argc, char** argv)
 
 void Edge_detection::strategymain()
 {
-    if(!orign_img.empty() && checkImageSource)
+    if(!orign_img.empty() && checkImageSource && Footstepack)
     {
         // orign_img = imread("/home/iclab/Desktop/PSO/test.png");
         // orign_img = imread("/home/ching/git/PSO/test.png");
         // imshow("view", orign_img);
         // waitKey(30);
         Mat frame_img = Mat::zeros(orign_img.size(),CV_8UC1);
-        if(now_step)
+        if(now_step % 2 == 1)
         {
             reachable_region.now_step = now_step;
             reachable_region.x = 40;
@@ -214,8 +225,10 @@ void Edge_detection::strategymain()
             
             for(int i = 0;i<100000000; i++);
             pre_now_step = now_step;
+            now_step++;
         // }
         edgeimage_Publisher.publish(edgeimage_msg);
+        Footstepack = false;
     }
     checkImageSource = false;
 }

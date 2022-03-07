@@ -28,15 +28,27 @@ PSO::~PSO()
 
 void PSO::initialize()
 {
+    Reachable_region_sub = nh.subscribe("/ReachableRegion_Topic", 1, &PSO::Reachable_Region, this);
     Depthimage_subscriber = nh.subscribe("/camera/aligned_depth_to_color/image_raw", 1, &PSO::DepthCallback,this);
     GetIMUData_Subscriber = nh.subscribe("/imu/rpy/filtered", 10, &PSO::GetIMUData,this);
     edgepoint_subscriber = nh.subscribe("/edgepoint_Topic", 10, &PSO::get_edgepoint, this);
         image_transport::ImageTransport it(nh);
         // image_transport::Publisher edgeimage_Publisher;
-        edgeimage_Publisher = it.advertise("final_image", 1, this);
+    edgeimage_Publisher = it.advertise("final_image", 1, this);
+    depthimage_Publisher = it.advertise("depth_image", 1, this);
     Computational_geometry = Computational_geometryInstance::getInstance();
     // FeatureDistance = FeatureDistanceInstance::getInstance();
     RealsenseIMUData = {0.0,0.0,0.0};
+}
+
+void PSO::Reachable_Region(const strategy::ReachableRegion &msg)
+{
+    freelimit[0] = msg.x;
+    freelimit[1] = msg.Width+msg.x;
+    freelimit[2] = msg.y;
+    freelimit[3] = msg.Height+msg.y;
+    freecenter[0] = (freelimit[0]+freelimit[1])/2;
+    freecenter[1] = (freelimit[2]+freelimit[3])/2;
 }
 
 void PSO::GetIMUData(const geometry_msgs::Vector3Stamped &msg)
@@ -66,8 +78,12 @@ void PSO::DepthCallback(const sensor_msgs::ImageConstPtr& depth_img)
         cv::Point2f center(dst_sz.height/2,dst_sz.width/2);
         cv::Mat rot_mat = cv::getRotationMatrix2D(center, 1 * (RealsenseIMUData[1]), 1.0);
         cv::warpAffine(depth_buffer, depth_buffer, rot_mat, dst_sz);
+        
+        msg_depth = cv_bridge::CvImage(std_msgs::Header(), "mono16", (cv_depth_ptr->image/5)*255).toImageMsg();
+        
         resize(depth_buffer, depth_buffer, cv::Size(640, 480));
         //   imshow("depth_buffer",depth_buffer);
+        depthimage_Publisher.publish(msg_depth);
     }
     catch (cv_bridge::Exception& e)
     {
@@ -152,7 +168,8 @@ void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int s
         if(InRegion[i])
             circle(Contours, Point(c[i].x, c[i].y), radius, Scalar(0,255,0));
     }
-
+    circle(Contours, Point(gx, gy), 2, Scalar(0, 255, 255), 2);
+    circle(Contours, Point(freecenter[0], freecenter[1]), 2, Scalar(255, 0, 255), 2);
     addWeighted(Contours, 1, img, 1, 0, final_img);
     edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", final_img).toImageMsg();
     edgeimage_Publisher.publish(edgeimage_msg);
@@ -608,7 +625,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
                 ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
                 ROS_INFO("timeuse = %f", Periodtime);
                 // ROS_INFO("settings->print_every = %d", settings->print_every);
-                sleep(2);
+                // sleep(2);
             break;
         }
         // update pos_nb matrix (find best of neighborhood for all particles)
@@ -738,7 +755,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     ROS_INFO("timeuse = %f", Periodtime);
     Distance distance;
     distance = measure((int)solution->gbest[0]*2, (int)solution->gbest[1]*2, CameraType::stereo);
-    sleep(2);
+    // sleep(2);
                 // break;
     // free resources
     pso_matrix_free(pos, settings->size);
