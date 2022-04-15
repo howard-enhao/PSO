@@ -25,29 +25,29 @@ void Edge_detection::Footstepack_callback(const std_msgs::Bool& msg)
     Footstepack = msg.data;
 }
 
-string type2str(int type)
-{
-    string r;
+// string type2str(int type)
+// {
+//     string r;
 
-    uchar depth = type & CV_MAT_DEPTH_MASK;
-    uchar chans = 1 + (type >> CV_CN_SHIFT);
+//     uchar depth = type & CV_MAT_DEPTH_MASK;
+//     uchar chans = 1 + (type >> CV_CN_SHIFT);
 
-    switch ( depth ) {
-        case CV_8U:  r = "8U"; break;
-        case CV_8S:  r = "8S"; break;
-        case CV_16U: r = "16U"; break;
-        case CV_16S: r = "16S"; break;
-        case CV_32S: r = "32S"; break;
-        case CV_32F: r = "32F"; break;
-        case CV_64F: r = "64F"; break;
-        default:     r = "User"; break;
-    }
+//     switch ( depth ) {
+//         case CV_8U:  r = "8U"; break;
+//         case CV_8S:  r = "8S"; break;
+//         case CV_16U: r = "16U"; break;
+//         case CV_16S: r = "16S"; break;
+//         case CV_32S: r = "32S"; break;
+//         case CV_32F: r = "32F"; break;
+//         case CV_64F: r = "64F"; break;
+//         default:     r = "User"; break;
+//     }
 
-    r += "C";
-    r += (chans+'0');
+//     r += "C";
+//     r += (chans+'0');
 
-    return r;
-}
+//     return r;
+// }
 
 void Edge_detection::initial()
 {
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 
 void Edge_detection::strategymain()
 {
-    if(!orign_img.empty() && checkImageSource && Footstepack)
+    if(!orign_img.empty()&& checkImageSource && Footstepack)
     {
         // orign_img = imread("/home/iclab/Desktop/PSO/test.png");
         // orign_img = imread("/home/ching/git/PSO/test.png");
@@ -84,18 +84,22 @@ void Edge_detection::strategymain()
         if(now_step % 2 == 1)
         {
             reachable_region.now_step = now_step;
-            reachable_region.x = 40;
-            reachable_region.y = 100;
-            reachable_region.Width = 120;
-            reachable_region.Height = 139;
+            reachable_region.x = 195;
+            reachable_region.y = 150;
+            reachable_region.Width = 115;
+            reachable_region.Height = 89;
+            reachable_region.c_x = 235;
+            reachable_region.c_y = 185;
         }
         else
         {
             reachable_region.now_step = now_step;
-            reachable_region.x = 160;
-            reachable_region.y = 100;
-            reachable_region.Width = 120;
-            reachable_region.Height = 139;
+            reachable_region.x = 80;
+            reachable_region.y = 150;
+            reachable_region.Width = 115;
+            reachable_region.Height = 89;
+            reachable_region.c_x = 155;
+            reachable_region.c_y = 185;
         }
         // if(pre_now_step != now_step)
         // {
@@ -188,7 +192,7 @@ void Edge_detection::strategymain()
                 char ch[256];
                 sprintf(ch,"%d",i);
                 string str=ch;
-                cout<<"向量hierarchy的第" <<str<<" 個元素内容為："<<ring_hierarchy[i]<<endl<<endl;
+                cout<<"向量hierarchy的第" <<str<<" 個元素内容為:"<<ring_hierarchy[i]<<endl<<endl;
                 printf("\nok = %d\n", Computational_geometry->areaOfPolygon(edge_point));
                 // printf("point  %d\n", Computational_geometry->isPointInPolygon(edge_point, Point3i(200, 120, 0)));
                 // printf("point = %d\n", Computational_geometry->isCircleInPolygon(edge_point, Point3i(200, 120, 0), 5));
@@ -211,6 +215,8 @@ void Edge_detection::strategymain()
             edgepoint_pub.publish(edgepointlist);
             edgepointlist.Edgepointlist.clear();
             addWeighted(Shrink, 1, edge, 0.3, 0, Shrink);  //合成edgeimg與shrinkimg
+            rectangle(Shrink, Rect(130,151,50,68), Scalar(150), 1, 8, 0);
+            rectangle(Shrink, Rect(210,151,50,68), Scalar(150), 1, 8, 0);
             rectangle(Shrink, rect, Scalar(200), 1, 8, 0);
             // imshow("dist", dist);
             // imshow("ring", ring);

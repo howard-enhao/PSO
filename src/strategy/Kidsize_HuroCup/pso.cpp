@@ -32,6 +32,7 @@ void PSO::initialize()
     Depthimage_subscriber = nh.subscribe("/camera/aligned_depth_to_color/image_raw", 1, &PSO::DepthCallback,this);
     GetIMUData_Subscriber = nh.subscribe("/imu/rpy/filtered", 10, &PSO::GetIMUData,this);
     edgepoint_subscriber = nh.subscribe("/edgepoint_Topic", 10, &PSO::get_edgepoint, this);
+    edgeimg_subscriber = nh.subscribe("edge_image", 10, &PSO::get_edgeimg, this);
         image_transport::ImageTransport it(nh);
         // image_transport::Publisher edgeimage_Publisher;
     edgeimage_Publisher = it.advertise("final_image", 1, this);
@@ -47,8 +48,8 @@ void PSO::Reachable_Region(const strategy::ReachableRegion &msg)
     freelimit[1] = msg.Width+msg.x;
     freelimit[2] = msg.y;
     freelimit[3] = msg.Height+msg.y;
-    freecenter[0] = (freelimit[0]+freelimit[1])/2;
-    freecenter[1] = (freelimit[2]+freelimit[3])/2;
+    freecenter[0] = msg.c_x;  //(freelimit[0]+freelimit[1])/2;
+    freecenter[1] = msg.c_y;  //(freelimit[2]+freelimit[3])/2;
 }
 
 void PSO::GetIMUData(const geometry_msgs::Vector3Stamped &msg)
@@ -79,7 +80,7 @@ void PSO::DepthCallback(const sensor_msgs::ImageConstPtr& depth_img)
         cv::Mat rot_mat = cv::getRotationMatrix2D(center, 1 * (RealsenseIMUData[1]), 1.0);
         cv::warpAffine(depth_buffer, depth_buffer, rot_mat, dst_sz);
         
-        msg_depth = cv_bridge::CvImage(std_msgs::Header(), "mono16", (cv_depth_ptr->image/5)*255).toImageMsg();
+        msg_depth = cv_bridge::CvImage(std_msgs::Header(), "mono16", (cv_depth_ptr->image/3)*255).toImageMsg();
         
         resize(depth_buffer, depth_buffer, cv::Size(640, 480));
         //   imshow("depth_buffer",depth_buffer);
@@ -154,9 +155,17 @@ void PSO::get_edgepoint(const strategy::EdgePointList &msg)
     
 }
 
+void PSO::get_edgeimg(const sensor_msgs::ImageConstPtr& msg)
+{
+    cv_bridge::CvImagePtr cv_ptr;
+    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+    edge_img = cv_ptr->image;
+}
+
 void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int step, int gx, int gy)
 {
-    Mat img = imread("/home/iclab/Desktop/PSO/finalimage.png");
+    Mat img = edge_img;
+    // Mat img = imread("/home/iclab/Desktop/PSO/finalimage.png");
     // Mat img = imread("/home/ching/git/PSO/finalimage.png");
     Mat Contours=Mat::zeros(img.size(),CV_8UC3);
     Mat final_img;
@@ -168,8 +177,8 @@ void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int s
         if(InRegion[i])
             circle(Contours, Point(c[i].x, c[i].y), radius, Scalar(0,255,0));
     }
-    circle(Contours, Point(gx, gy), 2, Scalar(0, 255, 255), 2);
-    circle(Contours, Point(freecenter[0], freecenter[1]), 2, Scalar(255, 0, 255), 2);
+    circle(Contours, Point(gx, gy), 2, Scalar(0, 255, 255), 2); //yellow
+    circle(Contours, Point(freecenter[0], freecenter[1]), 2, Scalar(255, 0, 255), 2);  //pink
     addWeighted(Contours, 1, img, 1, 0, final_img);
     edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", final_img).toImageMsg();
     edgeimage_Publisher.publish(edgeimage_msg);

@@ -41,6 +41,7 @@ class KidsizeStrategy
 			pub_stepspace = nh.advertise<strategy::step_space>("/stepspace", 1);
 			stepcheck_pub = nh.advertise<std_msgs::Bool>("/stepcheck", 1);
 			Reachable_region_sub = nh.subscribe("/ReachableRegion_Topic", 1, &KidsizeStrategy::Reachable_Region, this);
+			FPGAack_subscriber = nh.subscribe("/package/footstepack", 1, &KidsizeStrategy::Footstepack_callback, this);
 		};
 		~KidsizeStrategy()
 		{
@@ -62,9 +63,11 @@ class KidsizeStrategy
 		ros::Publisher stepcheck_pub;
 		ros::Subscriber sub;
 		ros::Subscriber Reachable_region_sub;
+        ros::Subscriber FPGAack_subscriber;
 		void strategymain(ros::NodeHandle nh);
 		void Obstaclefreearea(const strategy::obstacle &msg);
 		void Reachable_Region(const strategy::ReachableRegion &msg);
+		void Footstepack_callback(const std_msgs::Bool& msg);
 		// double pso_sphere(double *pos, int dim, void *params);
 		strategy::step_space freecoordinate;
 		struct timeval tstart, tend;
@@ -80,7 +83,7 @@ class KidsizeStrategy
 		float free_limit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/
 		float freelimit[4] = {0};  /*free_limit = [xmin, xmax, ymin, ymax]*/
 		float *free_coordinate[2] = {0}; /**free_coordinate = [x, y]*/
-		
+		int cnt;
 		/*foot width = 60 , foot hight = 80*/
 		int foot_width = 60;
 		int foot_height = 80;
@@ -88,6 +91,7 @@ class KidsizeStrategy
 		int foot_heightmin = 70;
 
 		int obs_side = 0;
+        bool Footstepack;
 		enum
 		{/*obs_side*/
 			right_side,

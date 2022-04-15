@@ -143,6 +143,7 @@ class PSO : public FeatureDistance
         void GetIMUData(const geometry_msgs::Vector3Stamped &msg);
         void DepthCallback(const sensor_msgs::ImageConstPtr& depth_img);
         void get_edgepoint(const strategy::EdgePointList &msg);
+        void get_edgeimg(const sensor_msgs::ImageConstPtr& msg);
         void show_image(const vector<Point3i>& c,  int radius, bool* InRegion, int step, int gx, int gy);
         // double pso_sphere(double *pos, int dim, void *params);
         // pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate);
@@ -154,11 +155,13 @@ class PSO : public FeatureDistance
         int gx, gy;
         float freelimit[4] = {0};
         int freecenter[2] = {0};
+        Mat edge_img;
     private:
         ros::NodeHandle nh;
         ros::Subscriber GetIMUData_Subscriber;
         ros::Subscriber Depthimage_subscriber;
 		ros::Subscriber edgepoint_subscriber;
+        ros::Subscriber edgeimg_subscriber;
         ros::Subscriber Reachable_region_sub;
         image_transport::Publisher edgeimage_Publisher;
         image_transport::Publisher depthimage_Publisher;
