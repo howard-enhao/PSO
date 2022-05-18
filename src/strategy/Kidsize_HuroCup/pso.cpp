@@ -29,17 +29,17 @@ PSO::~PSO()
 void PSO::initialize()
 {
     Reachable_region_sub = nh.subscribe("/ReachableRegion_Topic", 1, &PSO::Reachable_Region, this);
-    Depthimage_subscriber = nh.subscribe("/camera/aligned_depth_to_color/image_raw", 1, &PSO::DepthCallback,this);
-    GetIMUData_Subscriber = nh.subscribe("/imu/rpy/filtered", 10, &PSO::GetIMUData,this);
+    // Depthimage_subscriber = nh.subscribe("/camera/aligned_depth_to_color/image_raw", 1, &PSO::DepthCallback,this);
+    // GetIMUData_Subscriber = nh.subscribe("/imu/rpy/filtered", 10, &PSO::GetIMUData,this);
     edgepoint_subscriber = nh.subscribe("/edgepoint_Topic", 10, &PSO::get_edgepoint, this);
     edgeimg_subscriber = nh.subscribe("edge_image", 10, &PSO::get_edgeimg, this);
         image_transport::ImageTransport it(nh);
         // image_transport::Publisher edgeimage_Publisher;
     edgeimage_Publisher = it.advertise("final_image", 1, this);
-    depthimage_Publisher = it.advertise("depth_image", 1, this);
+    // depthimage_Publisher = it.advertise("depth_image", 1, this);
     Computational_geometry = Computational_geometryInstance::getInstance();
     // FeatureDistance = FeatureDistanceInstance::getInstance();
-    RealsenseIMUData = {0.0,0.0,0.0};
+    // RealsenseIMUData = {0.0,0.0,0.0};
 }
 
 void PSO::Reachable_Region(const strategy::ReachableRegion &msg)
@@ -52,47 +52,47 @@ void PSO::Reachable_Region(const strategy::ReachableRegion &msg)
     freecenter[1] = msg.c_y;  //(freelimit[2]+freelimit[3])/2;
 }
 
-void PSO::GetIMUData(const geometry_msgs::Vector3Stamped &msg)
-{
-    try
-    {
-        RealsenseIMUData[0] = msg.vector.x;
-        RealsenseIMUData[1] = msg.vector.y;
-        RealsenseIMUData[2] = msg.vector.z;
-        // ROS_INFO("r = %f, p = %f, y = %f",RealsenseIMUData[0],RealsenseIMUData[1],RealsenseIMUData[2]);
+// void PSO::GetIMUData(const geometry_msgs::Vector3Stamped &msg)
+// {
+//     try
+//     {
+//         RealsenseIMUData[0] = msg.vector.x;
+//         RealsenseIMUData[1] = msg.vector.y;
+//         RealsenseIMUData[2] = msg.vector.z;
+//         // ROS_INFO("r = %f, p = %f, y = %f",RealsenseIMUData[0],RealsenseIMUData[1],RealsenseIMUData[2]);
               
-    }catch(...)
-    {
-      ROS_INFO("No IMU Data");
-      return;
-    }
-}
+//     }catch(...)
+//     {
+//       ROS_INFO("No IMU Data");
+//       return;
+//     }
+// }
 
-void PSO::DepthCallback(const sensor_msgs::ImageConstPtr& depth_img) 
-{
-    cv_bridge::CvImagePtr cv_depth_ptr;
-    try
-    {
-        cv_depth_ptr = cv_bridge::toCvCopy(depth_img, sensor_msgs::image_encodings::TYPE_16UC1);
-        depth_buffer = cv_depth_ptr->image;
-        cv::Size dst_sz(depth_buffer.cols,depth_buffer.rows);
-        cv::Point2f center(dst_sz.height/2,dst_sz.width/2);
-        cv::Mat rot_mat = cv::getRotationMatrix2D(center, 1 * (RealsenseIMUData[1]), 1.0);
-        cv::warpAffine(depth_buffer, depth_buffer, rot_mat, dst_sz);
+// void PSO::DepthCallback(const sensor_msgs::ImageConstPtr& depth_img) 
+// {
+//     cv_bridge::CvImagePtr cv_depth_ptr;
+//     try
+//     {
+//         cv_depth_ptr = cv_bridge::toCvCopy(depth_img, sensor_msgs::image_encodings::TYPE_16UC1);
+//         depth_buffer = cv_depth_ptr->image;
+//         cv::Size dst_sz(depth_buffer.cols,depth_buffer.rows);
+//         cv::Point2f center(dst_sz.height/2,dst_sz.width/2);
+//         cv::Mat rot_mat = cv::getRotationMatrix2D(center, 1 * (RealsenseIMUData[1]), 1.0);
+//         cv::warpAffine(depth_buffer, depth_buffer, rot_mat, dst_sz);
         
-        msg_depth = cv_bridge::CvImage(std_msgs::Header(), "mono16", (cv_depth_ptr->image/3)*255).toImageMsg();
+//         msg_depth = cv_bridge::CvImage(std_msgs::Header(), "mono16", (cv_depth_ptr->image/3)*255).toImageMsg();
         
-        resize(depth_buffer, depth_buffer, cv::Size(640, 480));
-        //   imshow("depth_buffer",depth_buffer);
-        depthimage_Publisher.publish(msg_depth);
-    }
-    catch (cv_bridge::Exception& e)
-    {
-      ROS_ERROR("DepthCallback cv_bridge exception: %s", e.what());
-      return;
-    }
-    // cout << "image data(240, 320): " << (depth_buffer.at<uint16_t>(240, 320))*0.1 <<" cm" << endl;//獲取圖像坐標240,320的深度值,單位是公分
-}
+//         resize(depth_buffer, depth_buffer, cv::Size(640, 480));
+//         //   imshow("depth_buffer",depth_buffer);
+//         depthimage_Publisher.publish(msg_depth);
+//     }
+//     catch (cv_bridge::Exception& e)
+//     {
+//       ROS_ERROR("DepthCallback cv_bridge exception: %s", e.what());
+//       return;
+//     }
+//     // cout << "image data(240, 320): " << (depth_buffer.at<uint16_t>(240, 320))*0.1 <<" cm" << endl;//獲取圖像坐標240,320的深度值,單位是公分
+// }
 
 // double PSO::pso_sphere(double *pos, int dim, void *params) {
 
@@ -162,10 +162,30 @@ void PSO::get_edgeimg(const sensor_msgs::ImageConstPtr& msg)
     edge_img = cv_ptr->image;
 }
 
+void PSO::save_img(int gx, int gy, int radius)
+{
+    Mat final_img = imread(path_1);
+    circle(final_img, Point(gx, gy), radius, Scalar(0,255,0));
+    circle(final_img, Point(gx, gy), 2, Scalar(0, 255, 255), 2); //yellow
+    circle(final_img, Point(freecenter[0], freecenter[1]), 2, Scalar(255, 0, 255), 2);  //pink
+    char save_path[200] = "";
+    string tmp = to_string(name_cnt);
+    tmp = "/final_image"+tmp+".png";
+    strcat(save_path, path_2);
+    strcat(save_path, tmp.c_str());
+
+    string point_str;
+    point_str = "("+to_string(gx)+","+to_string(gy)+")";
+
+    putText(final_img, point_str.c_str(), Point(30,30), FONT_HERSHEY_SIMPLEX, 1, Scalar(0,255,0),4,8);
+    imwrite(save_path, final_img);
+    printf("a\n");
+}
+
 void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int step, int gx, int gy)
 {
-    Mat img = edge_img;
-    // Mat img = imread("/home/iclab/Desktop/PSO/finalimage.png");
+    // Mat img = edge_img;
+    Mat img = imread(path_1);
     // Mat img = imread("/home/ching/git/PSO/finalimage.png");
     Mat Contours=Mat::zeros(img.size(),CV_8UC3);
     Mat final_img;
@@ -182,6 +202,9 @@ void PSO::show_image(const vector<Point3i>& c, int radius, bool* InRegion, int s
     addWeighted(Contours, 1, img, 1, 0, final_img);
     edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", final_img).toImageMsg();
     edgeimage_Publisher.publish(edgeimage_msg);
+    // save_img(final_img, gx, gy);
+    // printf("b\n");
+    // name_cnt++;
     // imshow("img", final_img);
     // char path[50] = "/home/ching/git/test_img/final_";
     // string temp_str = to_string(step);
@@ -603,8 +626,10 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     gx = solution->gbest[0];
     gy = solution->gbest[1];
     show_image(cpoint, 15, &posInObs[0], 0, gx, gy);
+    printf("q\n");
     memset(posInObs, 0, settings->size * sizeof(bool));
     cpoint.clear();
+    printf("q\n");
     msg_accel.cnt=settings->size;
     pub_accel.publish( msg_accel );
     msg_accel.x.clear();
@@ -739,6 +764,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         gx = solution->gbest[0];
         gy = solution->gbest[1];
         show_image(cpoint, 15, &posInObs[0], step+1, gx, gy);
+        printf("r\n");
         memset(posInObs, 0, settings->size * sizeof(bool));
         cpoint.clear();
 
@@ -762,8 +788,10 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
     ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
     ROS_INFO("timeuse = %f", Periodtime);
-    Distance distance;
-    distance = measure((int)solution->gbest[0]*2, (int)solution->gbest[1]*2, CameraType::stereo);
+    // Distance distance;
+    // distance = measure((int)solution->gbest[0]*2, (int)solution->gbest[1]*2, CameraType::stereo);
+    save_img(solution->gbest[0], solution->gbest[1], 15);
+    name_cnt++;
     // sleep(2);
                 // break;
     // free resources

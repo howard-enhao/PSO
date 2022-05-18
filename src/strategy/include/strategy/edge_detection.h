@@ -65,11 +65,15 @@ class Edge_detection
         image_transport::Publisher edgeimage_Publisher;
         sensor_msgs::ImagePtr edgeimage_msg;
         strategy::ReachableRegion reachable_region;
-        void strategymain();
+        void strategymain(ros::NodeHandle nh);
         void Catch_image(const sensor_msgs::ImageConstPtr& msg);
         void stepcheck_callback(const std_msgs::Bool& msg);
         void Footstepack_callback(const std_msgs::Bool& msg);
         void initial();
+        void save_image(const Mat orignimage);
+
+        char path_1[200] = "/home/iclab/Desktop/PSO/finalimage.png";
+        char path_2[200] = "/home/iclab/Desktop/PSO/data/orign";
         Mat edge;
         Mat orign_img;
         Mat frame;
@@ -79,6 +83,7 @@ class Edge_detection
         int now_step = 0;
         int pre_now_step = 999;
         bool Footstepack;
+        int name_cnt;
     // private:
 };
 

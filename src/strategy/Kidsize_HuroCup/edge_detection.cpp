@@ -23,6 +23,7 @@ void Edge_detection::stepcheck_callback(const std_msgs::Bool& msg)
 void Edge_detection::Footstepack_callback(const std_msgs::Bool& msg)
 {
     Footstepack = msg.data;
+    usleep(500*1000);
 }
 
 // string type2str(int type)
@@ -49,10 +50,25 @@ void Edge_detection::Footstepack_callback(const std_msgs::Bool& msg)
 //     return r;
 // }
 
+void Edge_detection::save_image(const Mat orignimage)
+{
+    char save_path[200] = "";
+    printf("%d\n", name_cnt);
+    string tmp = to_string(name_cnt);
+    tmp = "/origin_image"+tmp+".png";
+    strcat(save_path,path_2);
+    strcat(save_path,tmp.c_str());
+    imwrite(save_path, orignimage);
+}
+
 void Edge_detection::initial()
 {
     checkImageSource = false;
     Footstepack = false;
+    name_cnt = 0;
+    odd_step = false;
+    // path_2 = "/home/iclab/Desktop/PSO";
+    // path_1 = "/home/iclab/Desktop/PSO/finalimage.png";
 }
 
 int main(int argc, char** argv)
@@ -65,17 +81,21 @@ int main(int argc, char** argv)
     Edge_detection.initial();
     while(nh.ok())
     {
-        Edge_detection.strategymain();
+        Edge_detection.strategymain(nh);
         ros::spinOnce();
         loop_rate.sleep();
     }
     return 0;
 }
 
-void Edge_detection::strategymain()
+void Edge_detection::strategymain(ros::NodeHandle nh)
 {
+    // if(!odd_step)
+    //     name_cnt = 0;
     if(!orign_img.empty()&& checkImageSource && Footstepack)
     {
+        save_image(orign_img);
+        name_cnt++;
         // orign_img = imread("/home/iclab/Desktop/PSO/test.png");
         // orign_img = imread("/home/ching/git/PSO/test.png");
         // imshow("view", orign_img);
@@ -84,22 +104,22 @@ void Edge_detection::strategymain()
         if(now_step % 2 == 1)
         {
             reachable_region.now_step = now_step;
-            reachable_region.x = 195;
+            reachable_region.x = 185;
             reachable_region.y = 150;
             reachable_region.Width = 115;
             reachable_region.Height = 89;
-            reachable_region.c_x = 235;
-            reachable_region.c_y = 185;
+            reachable_region.c_x = 225;
+            reachable_region.c_y = 225;
         }
         else
         {
             reachable_region.now_step = now_step;
-            reachable_region.x = 80;
+            reachable_region.x = 90;
             reachable_region.y = 150;
             reachable_region.Width = 115;
             reachable_region.Height = 89;
-            reachable_region.c_x = 155;
-            reachable_region.c_y = 185;
+            reachable_region.c_x = 165;
+            reachable_region.c_y = 225;
         }
         // if(pre_now_step != now_step)
         // {
@@ -215,8 +235,8 @@ void Edge_detection::strategymain()
             edgepoint_pub.publish(edgepointlist);
             edgepointlist.Edgepointlist.clear();
             addWeighted(Shrink, 1, edge, 0.3, 0, Shrink);  //合成edgeimg與shrinkimg
-            rectangle(Shrink, Rect(130,151,50,68), Scalar(150), 1, 8, 0);
-            rectangle(Shrink, Rect(210,151,50,68), Scalar(150), 1, 8, 0);
+            rectangle(Shrink, Rect(140,161,50,68), Scalar(150), 1, 8, 0);
+            rectangle(Shrink, Rect(200,161,50,68), Scalar(150), 1, 8, 0);
             rectangle(Shrink, rect, Scalar(200), 1, 8, 0);
             // imshow("dist", dist);
             // imshow("ring", ring);
@@ -224,12 +244,12 @@ void Edge_detection::strategymain()
             // imshow("Contours Image",imageContours); //輪廓
             // imshow("Point of Contours",Contours);   //向量contours内保存的所有輪廓點集
             waitKey(30);
-            imwrite("/home/iclab/Desktop/PSO/finalimage.png", Shrink);
+            imwrite(path_1, Shrink);
             // imwrite("/home/ching/git/PSO/finalimage.png", Shrink);
             cvtColor(Shrink, frame, cv::COLOR_GRAY2BGR);
             edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
             
-            for(int i = 0;i<100000000; i++);
+            // for(int i = 0;i<100000000; i++);
             pre_now_step = now_step;
             now_step++;
         // }
@@ -237,4 +257,11 @@ void Edge_detection::strategymain()
         Footstepack = false;
     }
     checkImageSource = false;
+    if(odd_step)
+    {
+        Footstepack = true;
+        odd_step = false;
+        now_step = 0;
+        name_cnt = 0;
+    }
 }

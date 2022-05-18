@@ -62,7 +62,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include "strategy/ReachableRegion.h"
 
-#include "FeatureDistance/FeatureDistance.h"
+// #include "FeatureDistance/FeatureDistance.h"
 using namespace cv;
 
 using namespace std;
@@ -118,7 +118,7 @@ typedef void (PSO::*inform_fun_t)(int *comm, float **pos_nb,
 // function type for the different inertia calculation functions
 typedef double (PSO::*inertia_fun_t)(int step, pso_settings_t *settings);
 
-class PSO : public FeatureDistance
+class PSO// : public FeatureDistance
 {
     public:
         PSO();
@@ -140,31 +140,36 @@ class PSO : public FeatureDistance
         void init_comm_ring(int *comm, pso_settings_t * settings);
         void init_comm_random(int *comm, pso_settings_t * settings);
         void Reachable_Region(const strategy::ReachableRegion &msg);
-        void GetIMUData(const geometry_msgs::Vector3Stamped &msg);
-        void DepthCallback(const sensor_msgs::ImageConstPtr& depth_img);
+        // void GetIMUData(const geometry_msgs::Vector3Stamped &msg);
+        // void DepthCallback(const sensor_msgs::ImageConstPtr& depth_img);
         void get_edgepoint(const strategy::EdgePointList &msg);
         void get_edgeimg(const sensor_msgs::ImageConstPtr& msg);
         void show_image(const vector<Point3i>& c,  int radius, bool* InRegion, int step, int gx, int gy);
+        void save_img(int gx, int gy, int radius);
         // double pso_sphere(double *pos, int dim, void *params);
         // pso_settings_t *pso_settings_new(int dim, float* range_limit, float* range_coordinate);
         static double sum_objective_function;
         vector<vector<Point3i>> edgepoint_list;
         vector<Point3i> edge_point;
         sensor_msgs::ImagePtr edgeimage_msg;
-        sensor_msgs::ImagePtr msg_depth;
+        // sensor_msgs::ImagePtr msg_depth;
         int gx, gy;
         float freelimit[4] = {0};
         int freecenter[2] = {0};
         Mat edge_img;
+        int name_cnt;
+        char path_1[200] = "/home/iclab/Desktop/PSO/finalimage.png";
+        char path_2[200] = "/home/iclab/Desktop/PSO/data/final";
+        
     private:
         ros::NodeHandle nh;
-        ros::Subscriber GetIMUData_Subscriber;
-        ros::Subscriber Depthimage_subscriber;
+        // ros::Subscriber GetIMUData_Subscriber;
+        // ros::Subscriber Depthimage_subscriber;
 		ros::Subscriber edgepoint_subscriber;
         ros::Subscriber edgeimg_subscriber;
         ros::Subscriber Reachable_region_sub;
         image_transport::Publisher edgeimage_Publisher;
-        image_transport::Publisher depthimage_Publisher;
+        // image_transport::Publisher depthimage_Publisher;
         // edgeimage_Publisher = it.advertise("edge_image", 1, this);
     protected:
         Computational_geometryInstance *Computational_geometry;
