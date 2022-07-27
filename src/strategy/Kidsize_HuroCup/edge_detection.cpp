@@ -18,12 +18,14 @@ void Edge_detection::Catch_image(const sensor_msgs::ImageConstPtr& msg)
 void Edge_detection::stepcheck_callback(const std_msgs::Bool& msg)
 {
     odd_step = msg.data;
+    Footstepack = false;
 }
 
 void Edge_detection::Footstepack_callback(const std_msgs::Bool& msg)
 {
     Footstepack = msg.data;
-    usleep(500*1000);
+    usleep(2000*1000);
+    checkImageSource = false;
 }
 
 // string type2str(int type)
@@ -67,6 +69,7 @@ void Edge_detection::initial()
     Footstepack = false;
     name_cnt = 0;
     odd_step = false;
+    height_2 = 69;
     // path_2 = "/home/iclab/Desktop/PSO";
     // path_1 = "/home/iclab/Desktop/PSO/finalimage.png";
 }
@@ -92,7 +95,7 @@ void Edge_detection::strategymain(ros::NodeHandle nh)
 {
     // if(!odd_step)
     //     name_cnt = 0;
-    if(!orign_img.empty()&& checkImageSource && Footstepack)
+    if(!orign_img.empty()&& checkImageSource && Footstepack && odd_step)
     {
         save_image(orign_img);
         name_cnt++;
@@ -105,32 +108,41 @@ void Edge_detection::strategymain(ros::NodeHandle nh)
         {
             reachable_region.now_step = now_step;
             reachable_region.x = 185;
-            reachable_region.y = 150;
+            reachable_region.y = 130;
             reachable_region.Width = 115;
-            reachable_region.Height = 89;
-            reachable_region.c_x = 225;
-            reachable_region.c_y = 225;
+            reachable_region.Height = 109;
+            reachable_region.c_x = 220;
+            reachable_region.c_y = 205;
         }
         else
         {
             reachable_region.now_step = now_step;
             reachable_region.x = 90;
-            reachable_region.y = 150;
+            reachable_region.y = 130;
             reachable_region.Width = 115;
-            reachable_region.Height = 89;
-            reachable_region.c_x = 165;
-            reachable_region.c_y = 225;
+            reachable_region.Height = 109;
+            reachable_region.c_x = 170;
+            reachable_region.c_y = 205;
         }
+            // reachable_region.x = 90;
+            // reachable_region.y = 130;
+            // reachable_region.Width = 210;
+            // reachable_region.Height = 109;
         // if(pre_now_step != now_step)
         // {
             Rect rect(reachable_region.x, reachable_region.y, reachable_region.Width, reachable_region.Height);
-            Mat ROI = orign_img(rect);
+            Rect rect2(reachable_region.x, reachable_region.y, reachable_region.Width, height_2);
+            Mat ROI = orign_img(rect2);
+            Mat invert_tmp = Mat::zeros(rect.size(),CV_8UC1);
+            // invert_tmp = Scalar(255);
+            // Mat ROI_tmp = orign_img(rect2);
+            // erode(orign_img, orign_img, Mat());
+            // dilate(orign_img, orign_img, Mat());
 
+            GaussianBlur(orign_img, orign_img, Size(17,17),0.6);
             erode(orign_img, orign_img, Mat());
             dilate(orign_img, orign_img, Mat());
-
-            GaussianBlur(orign_img, orign_img, Size(17,17),1);
-            Canny(orign_img, edge, 80, 240, 3);
+            Canny(orign_img, edge, 120, 240, 3);
             Reachable_region_pub.publish(reachable_region);
             // cvtColor(edge, frame, cv::COLOR_GRAY2BGR);
             // edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
@@ -147,7 +159,6 @@ void Edge_detection::strategymain(ros::NodeHandle nh)
             // findContours(edge,contours,hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE,Point());
             // Mat imageContours=Mat::zeros(edge.size(),CV_8UC1);
             // Mat Contours=Mat::zeros(edge.size(),CV_8UC1);
-            
 
             /*  縮小物件輪廓 */
             vector<vector<Point>> ring_contours;
@@ -159,14 +170,12 @@ void Edge_detection::strategymain(ros::NodeHandle nh)
             cvtColor(ROI, ROI_frame, cv::COLOR_BGR2GRAY);
             Mat edge_1;
             Canny(ROI_frame, edge_1, 50, 150, 3);
-            // imshow("edge", ROI_frame);
-            // imshow("edge_1", edge_1);
-            // waitKey(30);
             edge_1 = ~edge_1;
-            // ROI_frame = ~ROI_frame;
+            invert_tmp = ~invert_tmp;
             Mat temp = frame_img(rect);
-            // ROI_frame.copyTo(temp);
-            edge_1.copyTo(temp);
+            invert_tmp.copyTo(temp);
+            Mat temp_2 = frame_img(rect2);
+            edge_1.copyTo(temp_2);
             distanceTransform(frame_img, dist, DIST_L2, DIST_MASK_PRECISE);
             inRange(dist, 9, 10, ring);
             threshold(ring, ring, 1, 255, CV_THRESH_BINARY);
@@ -248,20 +257,20 @@ void Edge_detection::strategymain(ros::NodeHandle nh)
             // imwrite("/home/ching/git/PSO/finalimage.png", Shrink);
             cvtColor(Shrink, frame, cv::COLOR_GRAY2BGR);
             edgeimage_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
-            
-            // for(int i = 0;i<100000000; i++);
+            printf("now_step = %d\n", now_step);
             pre_now_step = now_step;
             now_step++;
         // }
         edgeimage_Publisher.publish(edgeimage_msg);
         Footstepack = false;
+        usleep(500*1000);
     }
     checkImageSource = false;
-    if(odd_step)
+    if(!odd_step)
     {
-        Footstepack = true;
-        odd_step = false;
-        now_step = 0;
+        // Footstepack = true;
+        // odd_step = false;
+        now_step = 1;
         name_cnt = 0;
     }
 }

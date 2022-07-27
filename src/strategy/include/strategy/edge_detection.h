@@ -84,6 +84,7 @@ class Edge_detection
         int pre_now_step = 999;
         bool Footstepack;
         int name_cnt;
+        int height_2;
     // private:
 };
 

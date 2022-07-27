@@ -53,8 +53,8 @@ double pso_sphere(float *pos, int dim, void *params, bool posInObs) {
     // for (i=0; i<dim; i++)
     //     sum += pow(pos[i]-obs_coordinate[i], 2);  // pow = pos[i]^2
     // return sum;
-    float w1 = 0.1;
-    float w2 = 0.01;
+    float w1 = 0.01;
+    float w2 = 0.1;
     float w3 = 0.001;
     float w4 = 0.0001;
     int theta = 0;
@@ -81,7 +81,7 @@ double pso_sphere(float *pos, int dim, void *params, bool posInObs) {
 
 void KidsizeStrategy::Obstaclefreearea(const strategy::obstacle &msg)
 {
-    get_obs = true;
+    // get_obs = true;
     float *free_coordinate = (float *)calloc(2, sizeof(float));
     free_limit[0] = -100;
     free_limit[1] = 100;
@@ -184,11 +184,13 @@ void KidsizeStrategy::Reachable_Region(const strategy::ReachableRegion &msg)
     freelimit[3] = msg.Height+msg.y;
     freecenter[0] = msg.c_x;  //(freelimit[0]+freelimit[1])/2;
     freecenter[1] = msg.c_y;  //(freelimit[2]+freelimit[3])/2;
+    get_obs = true;
 }
 
 void KidsizeStrategy::Footstepack_callback(const std_msgs::Bool& msg)
 {
     Footstepack = msg.data;
+    // usleep(2500*1000);
 }
 
 //==============================================================
@@ -220,54 +222,27 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
         //     ros_com->sendBodyAuto(0, 0, 0, 0, WalkingMode::ContinuousStep,SensorMode::None);
         //     tool->Delay(2);
         //     walk_in = true;
-        //     ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
-        //     printf("0\n");
-        //     sleep(1);
+        //     // ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
+        //     // printf("0\n");
+        //     // sleep(1);
         // }
+        // ros_com->sendContinuousValue(8000, 0, 0, 0,SensorMode::None);
+        // sleep(4);
+        // ros_com->sendContinuousValue(4000, 0, 0, 0,SensorMode::None);
+        // sleep(4);
+        // ros_com->sendContinuousValue(3000, 0, 0, 0,SensorMode::None);
+        // sleep(4);
+        // ros_com->sendContinuousValue(8000, 0, 1800, 0,SensorMode::None);
+        // sleep(4);
+        // ros_com->sendContinuousValue(3000, 2000, 0, 0,SensorMode::None);
+        // sleep(4);
+        // ros_com->sendContinuousValue(8000, 0, 0, 0,SensorMode::None);
+        // sleep(4);
+        // ros_com->sendContinuousValue(3000, 0, 0, 0,SensorMode::None);
+        // sleep(4);
         
-        // if(Footstepack)
-        // {
-        //     cnt++;
-        //     printf("Footstepack = %d\n", Footstepack);
-        //     printf("cnt = %d\n", cnt);
-        //     if(cnt == 4 || cnt == 9)
-        //     {
-        //         printf("in\n");
-        //         ros_com->sendContinuousValue(4000, 1000, 2, 0,SensorMode::None);
-        //     }
-        //     else
-
-        //     ros_com->sendContinuousValue(7000, -2000, 0, 0,SensorMode::None);    
-        //     sleep(5);
-        //     cnt++;
-        //     printf("cnt = %d  ", cnt);
-        //     printf("7000\n");
-        // //     Footstepack = false;
-        // // }
-        //     // cnt++;
-        //     // printf("cnt = %d  ", cnt);
-        //     ros_com->sendContinuousValue(4000, 0, 0, 0,SensorMode::None);
-        //     // printf("4000\n");
-        //     sleep(2);
-        //     cnt++;
-        //     printf("cnt = %d  ", cnt);
-        //     printf("4000\n");
-            // ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
-            // sleep(2);
-            // ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
-            // sleep(2);
-            // ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
-            // sleep(2);
-            // ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
-            // sleep(8);
-
         
-        // ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
-        // sleep(2);
-        // ros_com->sendContinuousValue(0, 0, 2, 0,SensorMode::None);
-        // sleep(2);
-        // ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
-        // sleep(2);
+
         if(init)
         {
             for(int i = 0; i<4; i++)
@@ -280,9 +255,26 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
             walk_x = 0;
             walk_y = 0;
             walk_z = 0;
+            pre_walk_x = 0;
+            pre_walk_y = 0;
+            pre_walk_z = 0;
+            board_height = 2;
+            down_flag = false;
+            // ros_com->sendSensorSet(-0.5, -0.1, 0, 0x80);
+            if(!walk_in)
+            {
+                ros_com->sendBodyAuto(0, 0, 0, 0, WalkingMode::ContinuousStep,SensorMode::None);
+                tool->Delay(2);
+                walk_in = true;
+                // ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
+                // printf("0\n");
+                // sleep(1);
+            }
         }
-        if(now_step != pre_step)
+        else if(now_step != pre_step && Footstepack && get_obs)
         {
+
+            Footstepack = false;
             
             
 
@@ -297,7 +289,7 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
             }
 
             // set some general PSO settings
-            settings->goal = 0.03;//1e-2;
+            settings->goal = 0.02;//1e-2;
             // settings->size = 30;
             settings->nhood_strategy = PSO_NHOOD_RING;
             settings->nhood_size = 10;
@@ -317,57 +309,212 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
             Distance distance;
             distance = measure((int)solution.gbest[0]*2, (int)solution.gbest[1]*2, CameraType::stereo);
             depth_distance = AvgPixelDistance((int)solution.gbest[0]*2, (int)solution.gbest[1]*2);
+            printf("===================================================================\n");
+            printf("now_step = %d\n", now_step);
             printf("\ncenter = %d, %d\n", freecenter[0], freecenter[1]);
             printf("\n gbest = %d, %d\n", (int)solution.gbest[0], (int)solution.gbest[1]);
             printf("c_x = %d, y = %d, dis = %d\n", distance_c.y_dis, distance_c.x_dis, distance_c.dis);
             printf("  x = %d, y = %d, dis = %d\n", distance.y_dis, distance.x_dis, distance.dis);
-            printf("depth_distance = %f\n", depth_distance);
+            printf("\ndepth_distance = %f\n", depth_distance);
+            
+            walk_x = (freecenter[0]-(int)solution.gbest[0])/7;
+            walk_y = (freecenter[1]-(int)solution.gbest[1])/10+4;
+
+            //xxxxx
+            // if(now_step % 2 == 0)
+            // {
+            //     // walk_x = 1-distance.x_dis;
+            //     if(walk_x<distance_c.x_dis-distance.x_dis+3)
+            //         walk_x = distance_c.x_dis-distance.x_dis;
+            //     else
+            //         walk_x = walk_x;
+            //     if(walk_z == board_height)
+            //         walk_x = walk_x+1;
+            // }
+            // else
+            // {
+            //     // walk_x = 10-distance.x_dis;
+            //     if(walk_x>distance_c.x_dis-distance.x_dis-3)
+            //         walk_x = distance_c.x_dis-distance.x_dis;
+            //     else
+            //         walk_x = walk_x;
+            //     if(walk_z == board_height)
+            //         walk_x = walk_x-1;
+            // }
+            
+            //yyyyy
+            // if((distance_c.y_dis-distance.y_dis)>2)
+            //     walk_y = (float)(distance_c.y_dis-distance.y_dis)*2+4;
+            // else
+            //     walk_y = (float)(distance_c.y_dis-distance.y_dis)*1.5+4;
+            
+            if(walk_z == board_height || pre_walk_z == board_height)
+            {
+                
+                // walk_y = walk_y+3;
+                
+                if(pre_walk_z == board_height)
+                {
+                    down_flag = true;
+                    if(now_step % 2 == 0)
+                        walk_x = 1;
+                    else
+                        walk_x = -1;
+                    walk_y = 7;
+
+                    // ros_com->sendSensorSet(0, 0.1, 0, 0x80);
+                }
+                else
+                {
+                    if(now_step % 2 == 0)
+                        walk_x = 1;
+                    else
+                        walk_x = -1;
+                    walk_y = 6;
+                }
+                
+                pre_walk_z = walk_z;
+            }
+            
+            //zzzzz
+            if((depth_distance>37 && depth_distance<43.1 && depth_distance != 0.000000 && now_step>2 && !down_flag)||now_step == 4)
+            {
+                walk_z = board_height;
+                walk_y = walk_y+5;
+            }
+            else
+                walk_z = 0;
+            
             
             if(now_step % 2 == 0)
             {
-                // walk_x = 1-distance.x_dis;
-                if(walk_x<distance_c.x_dis-distance.x_dis)
-                    walk_x = distance_c.x_dis-distance.x_dis;
-                else
-                    walk_x = walk_x;
+                if(walk_x<0)
+                    walk_x = 0;
+                else if(walk_x>3)
+                    walk_x = 3;
             }
             else
             {
-                // walk_x = 10-distance.x_dis;
-                if(walk_x>distance_c.x_dis-distance.x_dis)
-                    walk_x = distance_c.x_dis-distance.x_dis;
-                else
-                    walk_x = walk_z;
+                if(walk_x>0)
+                    walk_x = 0;
+                else if(walk_x<-3)
+                    walk_x = -3;
             }
+            // if(walk_x<-3)
+            //         else
+            //             walk_x = -1;
+            //     walk_x = -3;
+            // else if(walk_x>3)
+            //     walk_x = 3;
 
-            walk_y = distance.y_dis-(distance_c.y_dis-4);
             if(walk_y<0)
                 walk_y = 0;
             else if(walk_y>7)
                 walk_y = 7;
 
-            if(depth_distance<45 && depth_distance != 0.000000)
-                walk_z = 2;
-            else
-                walk_z = 0;
 
+            pre_walk_x = walk_x;
+            pre_walk_y = walk_y;
+            // if(!walk_in)
+            // {
+            //     ros_com->sendBodyAuto(0,0,0,0, WalkingMode::ContinuousStep,SensorMode::None);
+            //     tool->Delay(2);
+            //     walk_in = true;
+            //     // ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
+            //     printf("0\n");
+            //     // sleep(1);
+            // }
 
-            if(!walk_in)
-            {
-                ros_com->sendBodyAuto(0,0,0,0, WalkingMode::ContinuousStep,SensorMode::None);
-                tool->Delay(2);
-                walk_in = true;
-                // ros_com->sendContinuousValue(0, 0, 0, 0,SensorMode::None);
-                printf("0\n");
-                // sleep(1);
-            }
+            // if(down_flag)
+            // {
+            //     printf("111111down_flag = true\n",down_flag);
+            //     if(now_step % 2 == 0)
+            //     {
+            //         ros_com->sendBodySector(183);
+            //         tool->Delay(500);
+            //         // ros_com->sendBodySector(121);
+            //         // tool->Delay(1500);
+            //         // ros_com->sendBodySector(122);
+            //         // tool->Delay(500);
+            //         // ros_com->sendBodySector(122);
+            //         // tool->Delay(500);
+            //         // ros_com->sendBodySector(122);
+            //         // tool->Delay(500);
+            //         ros_com->sendBodySector(171);
+            //         tool->Delay(500);
+            //         // ros_com->sendBodySector(181);
+            //         // tool->Delay(1000);
+            //     }
+            //     else
+            //     {
+            //         // ros_com->sendBodySector(181);
+            //         // tool->Delay(1000);
+            //         // ros_com->sendBodySector(182);
+            //         // tool->Delay(500);
+            //         // ros_com->sendBodySector(182);
+            //         // tool->Delay(500);
+            //         // ros_com->sendBodySector(182);
+            //         // tool->Delay(500);
+            //     }
+            //     // down_flag = false;
+            //     tool->Delay(2000);
 
-            printf("now_step = %d\n", now_step);
-            printf("walkx = %d, walky = %d, walkz = %d\n", walk_y, walk_x, walk_z);
-            ros_com->sendContinuousValue(walk_y*1000, walk_x*1000, 0, 0,SensorMode::None);
+            //     // ros_com->sendSensorSet(-0.4, 0.1, 0, 0x80);
+            // }
+            
+
+            printf("walkx = %.1f, walky = %.1f, walkz = %.1f\n", walk_y, walk_x, walk_z);
+            printf("pre_walk_z = %.1f\n",pre_walk_z);
+            sleep(2);
+            ros_com->sendContinuousValue(walk_y*1000, walk_x*1000, walk_z*1000, 0,SensorMode::None);
             // ros_com->sendContinuousValue(walk_y*1000, walk_x*1000, walk_z, 0,SensorMode::None);
             // ros_com->sendContinuousValue(4000, 0, 0, 0,SensorMode::None);
-            sleep(6);
+            // sleep(3);
+            tool->Delay(300);
+
+            // if(down_flag)
+            // {
+            //     printf("down_flag = true\n",down_flag);
+            //     if(now_step % 2 == 0)
+            //     {
+            //         // ros_com->sendBodySector(183);
+            //         // tool->Delay(1000);
+            //         ros_com->sendBodySector(121);
+            //         tool->Delay(1500);
+            //         ros_com->sendBodySector(122);
+            //         tool->Delay(500);
+            //         ros_com->sendBodySector(122);
+            //         tool->Delay(500);
+            //         // ros_com->sendBodySector(122);
+            //         // tool->Delay(500);
+            //         // ros_com->sendBodySector(122);
+            //         // tool->Delay(500);
+            //         // ros_com->sendBodySector(122);
+            //         // tool->Delay(500);
+            //         // ros_com->sendBodySector(181);
+            //         // tool->Delay(1000);
+            //         // ros_com->sendBodySector(172);
+            //         // tool->Delay(500);
+            //     }
+            //     else
+            //     {
+            //         // ros_com->sendBodySector(181);
+            //         // tool->Delay(1000);
+            //         // ros_com->sendBodySector(182);
+            //         // tool->Delay(500);
+            //         // ros_com->sendBodySector(182);
+            //         // tool->Delay(500);
+            //         // ros_com->sendBodySector(182);
+            //         // tool->Delay(500);
+            //     }
+            //     down_flag = false;
+            //     tool->Delay(2000);
+
+            //     // ros_com->sendSensorSet(-0.4, 0.1, 0, 0x80);
+            // }
+            // else
+                tool->Delay(2000);
+
             // free the gbest buffer
             free(solution.gbest);
 
@@ -385,7 +532,9 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
             // ros::shutdown();
             // get_image = false;
             pre_step = now_step;
+            printf("===================================================================\n");
         }
+        get_obs = false;
     }
     else
     {
@@ -393,12 +542,17 @@ void KidsizeStrategy::strategymain(ros::NodeHandle nh)
         {
             printf("end\n");
             ros_com->sendBodyAuto(0, 0, 0, 0, WalkingMode::ContinuousStep,SensorMode::None);
-            tool->Delay(10);
+            tool->Delay(2000);
             walk_in = false;
+            ros_com->sendBodySector(29);
+            tool->Delay(1000);
+            // ros_com->sendSensorSet(-0.4, 0.1, 0, 0x80);
+            odd_step.data = false;
+            stepcheck_pub.publish(odd_step);
         }
         init = true;
         cnt = 0;
-        odd_step.data = false;
-        stepcheck_pub.publish(odd_step);
+        now_step = 0;
+        Footstepack = false;
     }
 }

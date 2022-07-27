@@ -507,6 +507,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     bool CCRisInObs = false;
     bool *posInObs = (bool *)malloc(settings->size * sizeof(bool));
     vector<Point3i> cpoint;
+    int radius = 20;
     // int foot_area[4] = {-30,30,-40,40};
     int foot_area[4] = {0,0,0,0};
     // initialize random seed
@@ -590,7 +591,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         {
             if(!posInObs[i])
             {
-                posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), 15);
+                posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), radius);
                 if(posInObs[i])
                     break;
             }
@@ -714,7 +715,7 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
             {
                 if(!posInObs[i])
                 {
-                    posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), 15);
+                    posInObs[i] = Computational_geometry->isCircleInPolygon(edgepoint_list[j], Point3i(pos[i][0], pos[i][1], 0), radius);
                     if(posInObs[i])
                         break;
                 }
@@ -763,8 +764,8 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         }
         gx = solution->gbest[0];
         gy = solution->gbest[1];
-        show_image(cpoint, 15, &posInObs[0], step+1, gx, gy);
-        printf("r\n");
+        show_image(cpoint, radius, &posInObs[0], step+1, gx, gy);
+        // printf("r\n");
         memset(posInObs, 0, settings->size * sizeof(bool));
         cpoint.clear();
 
@@ -781,16 +782,16 @@ void PSO::pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
 
         // if (settings->print_every && (step % settings->print_every == 0))
         //     printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);
-        cout<<"goal = "<<settings->goal<<" error = "<<solution->error<<endl;
+        // cout<<"goal = "<<settings->goal<<" error = "<<solution->error<<endl;
     }
     gettimeofday(&tend, NULL);
     Periodtime  = (1000000*(tend.tv_sec - tstart.tv_sec) + (tend.tv_usec - tstart.tv_usec))/1000;//算週期
     printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
-    ROS_INFO("gbest = %f, %f", solution->gbest[0], solution->gbest[1]);
-    ROS_INFO("timeuse = %f", Periodtime);
+    printf("gbest = %f, %f\n", solution->gbest[0], solution->gbest[1]);
+    printf("timeuse = %f\n", Periodtime);
     // Distance distance;
     // distance = measure((int)solution->gbest[0]*2, (int)solution->gbest[1]*2, CameraType::stereo);
-    save_img(solution->gbest[0], solution->gbest[1], 15);
+    save_img(solution->gbest[0], solution->gbest[1], radius);
     name_cnt++;
     // sleep(2);
                 // break;

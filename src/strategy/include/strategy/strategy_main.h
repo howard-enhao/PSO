@@ -105,8 +105,11 @@ class KidsizeStrategy : public FeatureDistance
 
 		int obs_side = 0;
         bool Footstepack;
-		int walk_x, walk_y, walk_z;
+		float walk_x, walk_y, walk_z;
+		float pre_walk_x, pre_walk_y, pre_walk_z;
 		float depth_distance = 0;
+		float board_height;
+		bool down_flag;
 		enum
 		{/*obs_side*/
 			right_side,
